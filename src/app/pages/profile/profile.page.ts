@@ -2,20 +2,24 @@ import { Component, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { IonContent, IonIcon, AlertController } from '@ionic/angular';
+import { IonContent, IonIcon, IonModal, AlertController } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ProfileService } from '../../services/profile.service';
 import { PhilippineAddressService, Place, addressMatches } from '../../services/philippine-address.service';
 import { ProfileDraft, draftOf, validateProfile } from '../../models/profile';
-import { profilePhoto } from '../../models/profile-photo';
+import { preparePhoto, PHOTO_ERROR } from '../../models/profile-photo';
+import { PhotoCropComponent } from '../../components/photo-crop.component';
 
 @Component({selector:'app-profile',standalone:true,changeDetection:ChangeDetectionStrategy.Eager,
- imports:[IonContent,IonIcon,CommonModule,FormsModule,RouterLink],templateUrl:'./profile.page.html',styleUrls:['./profile.page.scss']})
+ imports:[IonContent,IonIcon,IonModal,PhotoCropComponent,CommonModule,FormsModule,RouterLink],templateUrl:'./profile.page.html',styleUrls:['./profile.page.scss']})
 export class ProfilePage implements OnDestroy {
  ready=false;editing=false;saving=false;processing=false;confirming=false;message='';email='';
  draft!:ProfileDraft;private original='';private userId='';private visit=0;
  picture:Blob|null|undefined;preview='';cities:Place[]=[];barangays:Place[]=[];
  citySuggestions:Place[]=[];barangaySuggestions:Place[]=[];addressMessage='';addressLoading=false;
  private cityRequest=0;private photoRequest=0;
+ readonly nativePhotos=Capacitor.isNativePlatform();cropSource:HTMLCanvasElement|null=null;cropOpen=false;
  constructor(public profiles:ProfileService,private addresses:PhilippineAddressService,private alerts:AlertController){}
  get profile(){return this.profiles.current();}
  get initials(){return (this.profile?.full_name||this.profile?.username||'You').trim().split(/\s+/).slice(0,2).map(v=>v[0]).join('').toUpperCase();}
@@ -51,23 +55,51 @@ export class ProfilePage implements OnDestroy {
  barangayTyped(value:string){this.draft.barangay_name=value;this.draft.barangay_code='';this.barangaySuggestions=addressMatches(this.barangays,value);}
  selectBarangay(place:Place){this.draft.barangay_name=place.name;this.draft.barangay_code=place.code;this.barangaySuggestions=[];}
  async choosePhoto(event:Event){
-  const input=event.target as HTMLInputElement,file=input.files?.[0];input.value='';if(!file)return;
+  const input=event.target as HTMLInputElement,file=input.files?.[0];if(!file)return;
+  // Keep the provider's file handle alive until its bytes have been copied.
+  try{await this.openCrop(()=>Promise.resolve(file));}finally{input.value='';}
+ }
+ async chooseNativePhoto(){
+  await this.openCrop(async()=>{
+   // Camera 8's newer gallery API returns original files on Android, ignoring resize/
+   // orientation options. getPhoto still performs native JPEG conversion (including HEIC).
+   const photo=await Camera.getPhoto({source:CameraSource.Photos,resultType:CameraResultType.Uri,
+    width:2048,height:2048,quality:95,correctOrientation:true,allowEditing:false,saveToGallery:false});
+   const path=photo.webPath||(photo.path?Capacitor.convertFileSrc(photo.path):'');
+   if(!path)throw Error(PHOTO_ERROR);
+   const response=await fetch(path,{signal:AbortSignal.timeout(20000)});
+   if(!response.ok)throw Error(PHOTO_ERROR);return response.blob();
+  });
+ }
+ private async openCrop(pick:()=>Promise<Blob|null>){
+  if(this.processing||this.saving||!this.editing||this.cropSource)return;
   const request=++this.photoRequest;this.processing=true;this.message='';
-  try{const blob=await profilePhoto(file);if(request!==this.photoRequest||!this.editing)return;
-   this.clearPreview();this.picture=blob;this.preview=URL.createObjectURL(blob);
-  }catch(error){if(request===this.photoRequest)this.message=error instanceof Error?error.message:'This photo could not be read.';}
+  try{const file=await pick();if(!file||request!==this.photoRequest||!this.editing)return;
+   const source=await preparePhoto(file);
+   if(request!==this.photoRequest||!this.editing){source.width=source.height=0;return;}
+   this.cropSource=source;this.cropOpen=true;
+  }catch(error){
+   const message=error instanceof Error?error.message:'';
+   if(request===this.photoRequest&&!/cancel(?:led|ed)?|no (?:image|photo|media).*select/i.test(message))
+    this.message=/^(Choose a|This photo)/.test(message)?message:PHOTO_ERROR;
+  }
   finally{if(request===this.photoRequest)this.processing=false;}
  }
+ applyCrop(blob:Blob){
+  if(!this.editing||!this.cropSource||!this.cropOpen)return;
+  this.clearPreview();this.picture=blob;this.preview=URL.createObjectURL(blob);this.cropOpen=false;
+ }
+ dismissCrop(){this.cropOpen=false;if(this.cropSource){this.cropSource.width=this.cropSource.height=0;}this.cropSource=null;}
  removePhoto(){this.photoRequest++;this.processing=false;this.clearPreview();this.picture=null;}
  private clearPreview(){if(this.preview)URL.revokeObjectURL(this.preview);this.preview='';}
- private clearPicture(){this.photoRequest++;this.processing=false;this.picture=undefined;this.clearPreview();}
+ private clearPicture(){this.photoRequest++;this.processing=false;this.picture=undefined;this.clearPreview();this.dismissCrop();}
  private async confirm(header:string,message:string,button:string){
   if(this.confirming)return false;this.confirming=true;
   try{const alert=await this.alerts.create({header,message,cssClass:'custom-alert',backdropDismiss:false,buttons:[{text:'Cancel',role:'cancel',cssClass:'alert-button-cancel'},{text:button,role:'confirm',cssClass:'alert-button-confirm'}]});await alert.present();return (await alert.onDidDismiss()).role==='confirm';}
   finally{this.confirming=false;}
  }
  async save(){
-  if(!this.ready||!this.editing||this.saving||this.processing||this.confirming)return;
+  if(!this.ready||!this.editing||this.saving||this.processing||this.confirming||this.cropSource)return;
   this.message=validateProfile(this.draft);if(this.message)return;
   if(!await this.confirm('Save profile changes?','Your details and chosen photo will be saved to this account.','Save changes'))return;
   this.saving=true;this.message='';
@@ -76,7 +108,7 @@ export class ProfilePage implements OnDestroy {
   finally{this.saving=false;}
  }
  async cancel(){if(this.saving||this.processing)return;if(this.dirty&&!await this.confirm('Discard your changes?','Your saved profile will stay as it is.','Discard changes'))return;this.editing=false;this.clearPicture();this.resetDraft();this.message='';this.citySuggestions=[];this.barangaySuggestions=[];}
- async canLeave(){if(this.saving||this.processing||this.confirming)return false;if(!this.dirty)return true;const yes=await this.confirm('Leave without saving?','The changes you made here have not been saved.','Leave page');if(yes){this.editing=false;this.clearPicture();}return yes;}
+ async canLeave(){if(this.cropSource){this.cropOpen=false;return false;}if(this.saving||this.processing||this.confirming)return false;if(!this.dirty)return true;const yes=await this.confirm('Leave without saving?','The changes you made here have not been saved.','Leave page');if(yes){this.editing=false;this.clearPicture();}return yes;}
  ionViewWillLeave(){this.visit++;this.cityRequest++;this.citySuggestions=[];this.barangaySuggestions=[];}
  ngOnDestroy(){this.ionViewWillLeave();this.clearPicture();}
 }

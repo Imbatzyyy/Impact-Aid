@@ -1,0 +1,11 @@
+<section class="crop-editor" aria-labelledby="crop-title">
+ <header><p class="eyebrow">Your profile photo</p><h2 id="crop-title">Make it yours</h2><p id="crop-help">Move your photo to frame it. Pinch or use the slider to zoom.</p></header>
+ <div class="crop-stage" tabindex="0" role="group" aria-label="Photo position" aria-describedby="crop-help" (keydown)="key($event)" (pointerdown)="pointerDown($event)" (pointermove)="pointerMove($event)" (pointerup)="pointerUp($event)" (pointercancel)="pointerUp($event)" (lostpointercapture)="pointerUp($event)">
+  <canvas #preview width="640" height="640" aria-label="Circular preview of your chosen photo"></canvas><div class="crop-mask" aria-hidden="true"></div>
+ </div>
+ <div class="zoom-control"><label for="photo-zoom">Zoom <span>{{crop.zoom.toFixed(1)}}×</span></label><input id="photo-zoom" type="range" min="1" max="4" step="0.01" [value]="crop.zoom" (input)="zoomInput($event)" [disabled]="busy"></div>
+ <div class="adjustments"><div class="position-buttons" role="group" aria-label="Move photo"><button type="button" aria-label="Move photo left" (click)="move(-1,0)" [disabled]="busy">←</button><button type="button" aria-label="Move photo up" (click)="move(0,-1)" [disabled]="busy">↑</button><button type="button" aria-label="Move photo down" (click)="move(0,1)" [disabled]="busy">↓</button><button type="button" aria-label="Move photo right" (click)="move(1,0)" [disabled]="busy">→</button></div><button class="rotate" type="button" (click)="rotate()" [disabled]="busy">↻ Rotate</button><button class="reset" type="button" (click)="reset()" [disabled]="busy">Reset</button></div>
+ @if(message){<p class="error" role="alert">{{message}}</p>}
+ <p class="save-note">Your photo is saved when you save your profile.</p>
+ <footer><button class="cancel" type="button" (click)="cancelled.emit()" [disabled]="busy">Cancel</button><button class="confirm" type="button" (click)="usePhoto()" [disabled]="busy">{{busy?'Preparing…':'Use photo'}}</button></footer>
+</section>

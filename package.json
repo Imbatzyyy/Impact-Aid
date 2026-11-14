@@ -1,6 +1,6 @@
 {
   "name": "impact-aid",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,6 +21,7 @@
     "@capacitor/android": "8.6.2",
     "@capacitor/app": "8.1.2",
     "@capacitor/browser": "8.0.5",
+    "@capacitor/camera": "8.2.6",
     "@capacitor/core": "8.6.2",
     "@capacitor/filesystem": "8.1.5",
     "@capacitor/geolocation": "8.2.4",

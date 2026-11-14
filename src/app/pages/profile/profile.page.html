@@ -8,7 +8,7 @@
    <div class="portrait" [class.large]="editing">@if(photo){<img [src]="photo" alt="Your profile photo">}@else{<span>{{initials}}</span>}</div>
    <div class="identity-copy"><p class="eyebrow">A little more you</p><h2>{{profile.full_name || profile.username}}</h2><p>{{profile.username}}</p></div>
    @if(!editing){<button class="secondary edit-button" (click)="edit()">Edit profile <ion-icon name="arrow-forward-outline"></ion-icon></button>}
-   @if(editing){<div class="photo-actions"><label class="secondary photo-pick" for="profile-photo">{{processing?'Preparing photo…':'Change photo'}}<input id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp" (change)="choosePhoto($event)" [disabled]="processing||saving"></label>@if(photo){<button class="text-button" type="button" (click)="removePhoto()" [disabled]="saving||processing">Remove photo</button>}<small>A square preview. JPG, PNG or WebP, up to 10 MB.</small></div>}
+   @if(editing){<div class="photo-actions">@if(nativePhotos){<button type="button" class="secondary" (click)="chooseNativePhoto()" [disabled]="processing||saving">{{processing?'Preparing photo…':'Change photo'}}</button>}@else{<label class="secondary photo-pick" for="profile-photo">{{processing?'Preparing photo…':'Change photo'}}<input id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/avif,.heic,.heif" (change)="choosePhoto($event)" [disabled]="processing||saving"></label>}@if(photo){<button class="text-button" type="button" (click)="removePhoto()" [disabled]="saving||processing">Remove photo</button>}<small>Choose a photo, then adjust it in the circle. JPG, PNG and WebP work best.</small></div>}
   </section>
   @if(!editing){
    <section class="profile-card"><div class="section-title"><ion-icon name="shield-checkmark-outline"></ion-icon><div><h2>About you</h2><p>Keep it as simple as you like.</p></div></div><dl class="details"><div><dt>Full name</dt><dd>{{profile.full_name || 'Not added'}}</dd></div><div><dt>Username</dt><dd>{{profile.username}}</dd></div><div><dt>Age</dt><dd>{{profile.age === null ? 'Not added' : profile.age + ' years'}}</dd></div><div><dt>Mobile number</dt><dd>{{profile.phone || 'Not added'}}</dd></div></dl></section>
@@ -40,3 +40,5 @@
   }
  </main>
 </ion-content>
+
+<ion-modal class="photo-crop-modal" [isOpen]="cropOpen" [backdropDismiss]="true" (didDismiss)="dismissCrop()" aria-label="Adjust profile photo"><ng-template>@if(cropSource){<app-photo-crop [source]="cropSource" (chosen)="applyCrop($event)" (cancelled)="cropOpen=false"></app-photo-crop>}</ng-template></ion-modal>
