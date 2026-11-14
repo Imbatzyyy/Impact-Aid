@@ -22,7 +22,7 @@
     <details class="location-help"><summary>About location & directory coverage</summary><p>Device estimates may be approximate. The blue circle shows reported uncertainty. Updates stop when you leave this page or hide the app.</p><p>Saved Philippine map records are available without internet. Coverage and contact details can be incomplete or outdated. Map tiles and directions require internet; this app does not dispatch responders.</p><p>Directory snapshot: {{directoryUpdatedAt | date:'mediumDate'}}. <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors · ODbL</a>. <a href="assets/data/emergency-places.json" target="_blank" rel="noopener">Download directory data</a>.</p></details>
   </section>
 
-  <nav class="page-body category-filters" aria-label="Facility category"><button *ngFor="let category of placeCategories" (click)="onFilterChange(category.id)" [attr.aria-pressed]="selectedType===category.id" [class.active]="selectedType===category.id" [style.--category-color]="category.color"><ion-icon [name]="category.icon"></ion-icon>{{category.name}}<span class="marker-key" aria-hidden="true">{{category.mark}}</span></button></nav>
+  <nav class="page-body category-filters" aria-label="Facility category"><button *ngFor="let category of placeCategories" (click)="onFilterChange(category.id)" [attr.aria-pressed]="selectedType===category.id" [class.active]="selectedType===category.id" [style.--category-color]="category.color"><ion-icon [name]="category.icon"></ion-icon>{{category.name}}</button></nav>
 
   <div class="map-panel">
     <div #mapElement class="map-canvas" [hidden]="mapError"></div>
@@ -44,7 +44,7 @@
       <div class="place-actions"><button (click)="showOnMap(place)"><ion-icon name="location-outline"></ion-icon>Show on map</button><button (click)="handleGetDirections(place)"><ion-icon name="navigate"></ion-icon>Directions</button><button *ngIf="phoneFor(place)" (click)="handleCall(phoneFor(place))"><ion-icon name="call"></ion-icon>Call {{phoneFor(place)}}</button></div>
       <p class="place-source"><a [href]="place.source" target="_blank" rel="noopener">Map source & details</a> · {{place.coordinateKind==='site' ? 'Site center; entrance may differ' : 'Mapped location'}}<span *ngIf="phoneFor(place)"> · {{place.phoneSource ? 'Official directory contact' : 'Number supplied by map contributor'}}</span><span *ngIf="place.phoneSource"> · <a [href]="place.phoneSource" target="_blank" rel="noopener">Official source</a></span></p>
     </article>
-    <button class="show-more" *ngIf="listLimit<filteredLocations.length" (click)="listLimit=listLimit+30">Show 30 more · {{filteredLocations.length-listLimit}} remaining</button>
+    <button class="show-more" *ngIf="listLimit<filteredLocations.length" (click)="morePlaces()">Show 30 more · {{filteredLocations.length-listLimit}} remaining</button>
     <div *ngIf="!directoryLoading&&!directoryError&&filteredLocations.length===0" class="empty-results"><ion-icon name="location-outline"></ion-icon><h3>No listed places match</h3><p>Increase the search range, choose All Philippines, or try a city name. A missing listing does not mean no help is available.</p></div>
   </section>
 </ion-content>

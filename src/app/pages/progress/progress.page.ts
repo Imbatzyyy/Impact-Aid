@@ -7,7 +7,8 @@ import { db, progressData, topics } from '../../services/backend';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { COURSE } from '../../models/course';
+import { Router, RouterLink } from '@angular/router';
 import { 
   IonContent, 
   IonIcon,
@@ -44,7 +45,7 @@ interface Progress {
   standalone: true,
   imports: [
     CommonModule, 
-    FormsModule,
+    RouterLink, FormsModule,
     IonContent,
     IonIcon
   ],
@@ -53,6 +54,8 @@ interface Progress {
 })
 export class ProgressPage implements OnInit, OnDestroy {
   user: User = { username: '', email: '' };
+  readonly course=COURSE;
+  history:{topic:string;correct:number;total:number;taken_at:string}[]=[];
   showCertificate = false;
   loading = true;
 
@@ -103,7 +106,7 @@ export class ProgressPage implements OnInit, OnDestroy {
   private clearProgress(){
     this.user={username:'',email:''};
     this.progress={completedLessons:Array(6).fill(false),quizScores:Array(6).fill(-1),badges:[]};
-    this.showCertificate=false;
+    this.showCertificate=false;this.history=[];
   }
   ionViewWillLeave(){
     this.loadVersion++;
@@ -116,11 +119,11 @@ export class ProgressPage implements OnInit, OnDestroy {
     this.clearProgress();
     this.loading=true;this.loadError=false;
     try {
-      const d=await progressData();
+      const d=await progressData(true);
       if(version!==this.loadVersion)return;
       this.user={username:d.username,email:d.user.email};
       this.progress.completedLessons=Array.from({length:6},(_,i)=>d.lessons.includes(i));
-      this.progress.quizScores=d.scores;
+      this.progress.quizScores=d.scores;this.history=d.attempts??[];
       this.progress.badges=d.scores.flatMap((score,i)=>{const b=getBadgeForScore(topics[i],score);return b?[b.name]:[];});
     } catch {
       if(version===this.loadVersion){this.clearProgress();this.loadError=true;}

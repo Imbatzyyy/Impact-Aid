@@ -1,3 +1,4 @@
+import { ADDITIONAL_QUESTIONS } from './quiz-extension';
 // Interfaces
 export interface QuizQuestion {
   question: string;
@@ -21,13 +22,13 @@ export function prepareQuiz(questions: QuizQuestion[], random = Math.random): Qu
     for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}
     return result;
   };
-  return shuffle(questions).slice(0,10).map(q=>{
+  return shuffle(questions).slice(0,15).map(q=>{
     const order=shuffle(q.options.map((_,i)=>i));
     return {...q,options:order.map(i=>q.options[i]),correctAnswer:order.indexOf(q.correctAnswer)};
   });
 }
 
-export const QUIZ_DATA: Quiz[] = [
+const BASE_QUIZZES: Quiz[] = [
   // EARTHQUAKE
   {
     id: 0,
@@ -63,7 +64,7 @@ export const QUIZ_DATA: Quiz[] = [
       { question: 'What is a transform fault?', options: ['A fault where plates move horizontally past each other', 'Plates moving apart', 'Plates colliding and one going under another', 'Ocean ridge'], correctAnswer: 0 },
       { question: 'What natural disaster often follows an earthquake near the coast?', options: ['Tsunami', 'Flood', 'Hurricane', 'Tornado'], correctAnswer: 0 },
       { question: 'Which is true of a diverging plate boundary?', options: ['Plates move apart forming new crust', 'Plates slide sideways', 'Plates collide and subduct', 'Plates remain fixed'], correctAnswer: 0 },
-      { question: 'Which is safest to do immediately after a quake?', options: ['Check for gas leaks and turn valves off', 'Bake food', 'Go outside immediately', 'Use emergency exit elevators'], correctAnswer: 0 },
+      { question: 'After shaking stops, what should you do if you smell gas indoors?', options: ['Leave the area and report the leak from a safe location', 'Bake food', 'Switch the lights on', 'Use emergency exit elevators'], correctAnswer: 0 },
       { question: 'What\'s a good meeting plan after an earthquake?', options: ['Agree on safe locations to meet outside the home', 'Stay inside always', 'Move to basements', 'Go to nearest tall building'], correctAnswer: 0 },
       { question: 'Can scientists predict the exact time of the next earthquake?', options: ['No; prepare and follow official guidance', 'Yes, to the exact second', 'Only once a year globally', 'Earthquakes never happen'], correctAnswer: 0 }
     ]
@@ -79,11 +80,11 @@ export const QUIZ_DATA: Quiz[] = [
       { question: 'The word "tsunami" means:', options: ['Harbor wave', 'Storm surge', 'Large rainwave', 'Earthquake wave'], correctAnswer: 0 },
       { question: 'What commonly triggers a tsunami?', options: ['Large underwater earthquake', 'Tornado', 'Huge snowfall', 'Landslide only'], correctAnswer: 0 },
       { question: 'What is a local tsunami?', options: ['A tsunami within 100 km of its source', 'A tsunami crossing the Pacific Ocean', 'A tidal wave far from source', 'A type of thunderstorm'], correctAnswer: 0 },
-      { question: 'How fast can a local tsunami reach the coast?', options: ['2 to 5 minutes', 'Several hours', 'A day', 'A week'], correctAnswer: 0 },
+      { question: 'Why act on natural tsunami warnings immediately?', options: ['A local tsunami can arrive within minutes', 'An official alert always comes first', 'The first wave is always small', 'There is always a day to prepare'], correctAnswer: 0 },
       { question: 'What is a distant tsunami?', options: ['A tsunami that travels 1 to 24 hours before hitting a coast', 'A small wave near shore', 'An underwater volcanic eruption only', 'A flood caused by rivers'], correctAnswer: 0 },
       { question: 'Which is a sign of an incoming tsunami?', options: ['Ocean water suddenly pulling back significantly', 'Heavy rain', 'Overcast skies', 'Calm wind'], correctAnswer: 0 },
       { question: 'What sound might indicate a tsunami?', options: ['Roaring like a train or plane', 'Soft breeze', 'Silence', 'Birdsong'], correctAnswer: 0 },
-      { question: 'What should you do if you feel an earthquake near the coast and experience any tsunami sign?', options: ['Drop, cover, then run to high ground', 'Stay on the beach', 'Wait for official announcements', 'Swim to the ocean'], correctAnswer: 0 },
+      { question: 'What should you do if you feel an earthquake near the coast and experience any tsunami sign?', options: ['Drop, cover and hold on; once shaking stops, move inland or to high ground', 'Stay on the beach', 'Wait for official announcements', 'Swim to the ocean'], correctAnswer: 0 },
       { question: 'Where should you evacuate to during a tsunami?', options: ['To high ground or an officially designated tsunami evacuation structure', 'To the beach to watch', 'To the basement', 'To low-lying areas'], correctAnswer: 0 },
       { question: 'Can you surf a tsunami wave safely?', options: ['No', 'Yes', 'Only with a jet ski', 'At night'], correctAnswer: 0 },
       { question: 'What is the difference between a tsunami "warning" and "watch"?', options: ['Warning means a tsunami is likely imminent; watch means possible but uncertain threat', 'Watch means tsunami will hit; warning means no threat', 'Both mean the same', 'Watch means evacuation; warning means stay home'], correctAnswer: 0 },
@@ -91,7 +92,7 @@ export const QUIZ_DATA: Quiz[] = [
       { question: 'How long can tsunami waves continue after the initial wave?', options: ['For hours, with waves of varying sizes', 'Only one wave lasts', 'Several minutes', 'None, tsunami ends immediately'], correctAnswer: 0 },
       { question: 'What should you NOT do after an initial tsunami wave?', options: ['Assume danger is over and return home', 'Stay alert for more waves', 'Follow official instructions', 'Help neighbors only if safe'], correctAnswer: 0 },
       { question: 'How safe is it to be in a building surrounded by water after a tsunami?', options: ['Not safe; floors and walls may collapse', 'Perfectly safe', 'Safer than open ground', 'Only safe if tall building'], correctAnswer: 0 },
-      { question: 'If you cannot reach higher ground, how else can you evacuate?', options: ['Vertically to higher floors, roof, or climb trees', 'Stay in basement', 'Swim out to sea', 'Hide under furniture'], correctAnswer: 0 },
+      { question: 'If you cannot reach higher ground, how else can you evacuate?', options: ['Use a designated vertical evacuation structure according to the local plan', 'Stay in basement', 'Swim out to sea', 'Hide under furniture'], correctAnswer: 0 },
       { question: 'At sea during tsunami?', options: ['Follow maritime guidance to a safe depth away from threatened harbors', 'Sail towards shore', 'Dock immediately', 'Dive underwater'], correctAnswer: 0 },
       { question: 'How quickly should you evacuate after sensing tsunami signs?', options: ['Immediately, do not wait for official order', 'After pack your things carefully', 'Next morning', 'Only when police arrive'], correctAnswer: 0 },
       { question: 'What is one thing you should NOT do during a tsunami alert?', options: ['Go down to beach to watch waves', 'Take your pets with you', 'Move to evacuation site quickly', 'Follow evacuation route signs'], correctAnswer: 0 },
@@ -204,24 +205,24 @@ export const QUIZ_DATA: Quiz[] = [
       { question: 'Which group should be prioritized during evacuation?', options: ['Persons with disabilities (PWD), pregnant women, elderly, and children', 'Only adults', 'Pets only', 'Visitors'], correctAnswer: 0 },
       { question: 'Warning signs of a landslide include:', options: ['Increasingly muddy water in nearby streams', 'Clear water', 'Heavy winds', 'Sunny weather'], correctAnswer: 0 },
       { question: 'What sounds may warn a landslide?', options: ['Cracking trees, rushing water, rumbling rocks', 'Birdsong', 'Silence', 'Thunder'], correctAnswer: 0 },
-      { question: 'What should you do if a landslide is occurring?', options: ['Evacuate immediately uphill', 'Move downhill', 'Stay indoors', 'Stand still'], correctAnswer: 0 },
+      { question: 'What should you do if a landslide is occurring?', options: ['Move away from the path of moving debris if you can safely do so', 'Move downhill', 'Stay indoors', 'Stand still'], correctAnswer: 0 },
       { question: 'After a landslide, when should you return home?', options: ['Only after authorities say it\'s safe', 'Immediately', 'After one day', 'Never'], correctAnswer: 0 },
       { question: 'Landslides are more likely:', options: ['In areas that have experienced them before', 'In deserts only', 'Near the ocean only', 'In cities only'], correctAnswer: 0 },
       { question: 'How often should emergency supplies be updated?', options: ['Every year', 'Once every five years', 'Never', 'Every month'], correctAnswer: 0 },
-      { question: 'What should you do if trapped in the path of a landslide?', options: ['Move quickly uphill', 'Hide inside your house', 'Stay still', 'Run downhill or cross roads'], correctAnswer: 0 },
+      { question: 'What should you do if trapped in the path of a landslide?', options: ['Move out of the flow path toward stable ground if you can do so safely', 'Hide inside your house', 'Stay still', 'Run downhill or cross roads'], correctAnswer: 0 },
       { question: 'Why should you not return too soon to a landslide area?', options: ['The area may remain unstable and prone to another slide', 'It is always safe', 'No landslides will happen again', 'Roads are clear'], correctAnswer: 0 },
       { question: 'How can replanting help after a landslide?', options: ['Prevent erosion and future slides', 'Decorate the area', 'Attract tourists', 'None'], correctAnswer: 0 },
       { question: 'Listening to emergency broadcasts helps to:', options: ['Stay updated on weather and hazards', 'Enter unsafe zones', 'Ignore warnings', 'Plan parties'], correctAnswer: 0 },
       { question: 'Which sounds are NOT typical landslide warnings?', options: ['Birds singing', 'Cracking trees', 'Rushing water', 'Rumbling rocks'], correctAnswer: 0 },
       { question: 'How do weathering processes contribute to landslides?', options: ['Weaken rock and soil making slopes unstable', 'Strengthen soil', 'Cause drought', 'Increase wildlife'], correctAnswer: 0 },
       { question: 'Which structure\'s failure can lead to sudden flooding and landslides?', options: ['Dam', 'Bridge', 'Tower', 'Lighthouse'], correctAnswer: 0 },
-      { question: 'Which place is safer during a landslide?', options: ['Uphill from the slide zone', 'Base of the slope', 'Riverbanks', 'Open field near slope'], correctAnswer: 0 },
+      { question: 'Which place is safer during a landslide?', options: ['Stable ground outside the slide and its runout zone', 'Base of the slope', 'Riverbanks', 'Open field near slope'], correctAnswer: 0 },
       { question: 'What is "spread" in landslides?', options: ['Lateral movement of soil or rock over weak ground', 'Falling of rocks', 'Flooding', 'Tree fall'], correctAnswer: 0 },
       { question: 'What is "topple" movement?', options: ['Rotational movement of a rock mass about a pivot point', 'Falling straight down', 'Flood rush', 'Seismic activity'], correctAnswer: 0 },
       { question: 'Which human activity significantly increases landslide risk?', options: ['Deforestation', 'Planting trees', 'Building parks', 'Gardening'], correctAnswer: 0 },
       { question: 'What supplies are essential for landslide emergency kits?', options: ['First aid, flashlights, snacks, water', 'Clothing only', 'Toys', 'Books'], correctAnswer: 0 },
       { question: 'How do volcanic eruptions indirectly trigger landslides?', options: ['By producing mudflows (lahars)', 'By cooling the ground', 'By increasing rainfall', 'By sunlight'], correctAnswer: 0 },
-      { question: 'Which of these is NOT a landslide hazard?', options: ['Tsunami', 'Rockfall', 'Debris flow', 'Mudslide'], correctAnswer: 0 },
+      { question: 'Which is a warning sign of possible slope movement?', options: ['New or widening ground cracks on a slope', 'A steady indoor clock', 'A change in the moon phase', 'A passing cloud'], correctAnswer: 0 },
       { question: 'What kind of sediment is common in debris avalanches?', options: ['Rocks, soil, and loose material', 'Only water', 'Ice', 'Leaves'], correctAnswer: 0 },
       { question: 'How can urbanization increase landslide chances?', options: ['By disrupting natural drainage', 'By planting trees', 'By building dams only', 'By creating parks'], correctAnswer: 0 },
       { question: 'Why is proper waste disposal important regarding landslides?', options: ['Prevents drainage clogging and flooding', 'Makes landslide better', 'Has no effect', 'Improves soil stability'], correctAnswer: 0 },
@@ -269,3 +270,4 @@ export const QUIZ_DATA: Quiz[] = [
     ]
   }
 ];
+export const QUIZ_DATA: Quiz[] = BASE_QUIZZES.map((q,i)=>({...q,allQuestions:[...q.allQuestions,...ADDITIONAL_QUESTIONS[i]]}));

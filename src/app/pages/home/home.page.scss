@@ -33,3 +33,5 @@ strong,small { display:block; } strong { font-size:16px; font-weight:650; } smal
 .daily-note > ion-icon { font-size:23px; color:#40766a; flex-shrink:0; margin-top:2px; }.daily-note h2 { margin:0 0 7px; font-size:14px; font-weight:650; }.daily-note p { font-size:13px; line-height:1.65; color:#526976; margin:0; }.home-footnote { text-align:center; font-size:11px; color:#627780; margin:14px 0 0; }
 @media(min-width:700px) { .home-shell{padding:30px 40px 50px}.welcome{margin:32px 0}.help-banner{padding:20px}.action-list button{padding:23px}.learning-summary{padding:26px} }
 @media(max-width:360px) { .home-shell{padding:18px 16px 32px}.brand small{font-size:10px}.learning-summary{padding:18px}.progress-title h2{font-size:19px}.section-line{gap:8px} }
+
+.home-shell{padding-top:clamp(22px,4vw,34px)}.brand img{width:46px;height:50px;object-fit:contain}.home-brand{min-height:62px}

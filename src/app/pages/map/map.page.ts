@@ -88,7 +88,10 @@ export class MapPage implements AfterViewInit, OnDestroy {
   private mapResizeObserver?:ResizeObserver;
   private mapViewCenter={lat:14.641,lng:121.042};
   private mapViewZoom=12;
-  get visiblePlaces(){return this.filteredLocations.slice(0,this.listLimit);}
+  visiblePlaces:PlaceResult[]=[];
+  morePlaces(){this.listLimit+=30;this.visiblePlaces=this.filteredLocations.slice(0,this.listLimit);}
+  private iconCache=new Map<string,L.DivIcon>();
+  private searchTimer?:ReturnType<typeof setTimeout>;
   get distanceLabel(){return 'Straight-line distance from ' + this.browseLabel.toLowerCase();}
   get publicMode(){return typeof window !== 'undefined' && window.location.pathname==='/places';}
 
@@ -111,6 +114,7 @@ export class MapPage implements AfterViewInit, OnDestroy {
   refreshResults(reset=true){
     if(reset){this.listLimit=30;this.selectedPlace=null;}
     this.filteredLocations=findPlaces(this.locations,this.browseCenter,this.radiusKm,this.selectedType,this.searchQuery);
+    this.visiblePlaces=this.filteredLocations.slice(0,this.listLimit);
     this.updateMarkers();
   }
 
@@ -151,7 +155,7 @@ export class MapPage implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.destroyed=true;
+    clearTimeout(this.searchTimer);this.destroyed=true;
     this.directoryController?.abort();
     this.mapResizeObserver?.disconnect();
     this.pageVisible=false;
@@ -224,7 +228,7 @@ export class MapPage implements AfterViewInit, OnDestroy {
     this.locationStatus=this.locationIsApproximate
       ? 'Approximate location. The circle shows the reported uncertainty.'
       : 'Location updated. The circle shows the reported uncertainty.';
-    if(this.centerOnNextFix||this.browseLabel==='Your location'){this.browseCenter={...this.userCoords};this.browseLabel='Your location';this.refreshResults(false);}
+    if(this.centerOnNextFix||(this.browseLabel==='Your location'&&(this.browseCenter.lat!==coords.latitude||this.browseCenter.lng!==coords.longitude))){this.browseCenter={...this.userCoords};this.browseLabel='Your location';this.refreshResults(false);}
     this.renderUserLocation();
     clearTimeout(this.staleTimer);
     this.zone.runOutsideAngular(()=>{
@@ -359,15 +363,22 @@ export class MapPage implements AfterViewInit, OnDestroy {
 
 
     const bounds=this.map.getBounds();
-    const inView=this.filteredLocations.filter(place=>bounds.contains([place.lat,place.lng]));
-    this.matchingInView=inView.length;this.markersInView=Math.min(200,inView.length);
-    const visible=inView.slice(0,200),ids=new Set(visible.map(p=>p.id));
+    const visible:PlaceResult[]=[];let count=0;
+    const limit=this.mapElement.nativeElement.clientWidth<600?72:120;
+    for(const loc of this.filteredLocations){if(!bounds.contains([loc.lat,loc.lng]))continue;count++;if(visible.length<limit)visible.push(loc);}
+    const selected=this.selectedPlace;
+    if(selected&&bounds.contains([selected.lat,selected.lng])&&!visible.some(p=>p.id===selected.id)&&this.filteredLocations.some(p=>p.id===selected.id)){
+      if(visible.length===limit)visible.pop();
+      visible.push(selected);
+    }
+    this.matchingInView=count;this.markersInView=visible.length;
+    const ids=new Set(visible.map(p=>p.id));
     for(const [id,marker] of this.markerById){if(!ids.has(id)){marker.remove();this.markerById.delete(id);}}
     visible.forEach((loc) => {
       if(this.markerById.has(loc.id))return;
       const marker=L.marker([loc.lat,loc.lng],{icon:this.getLeafletIcon(loc.type),title:loc.name,alt:loc.name})
         .addTo(this.map!)
-        .bindPopup(this.createPlacePopup(loc),{className:'impact-place-popup',minWidth:210,maxWidth:280,maxHeight:Math.min(300,this.mapElement.nativeElement.clientHeight-100),autoPanPadding:L.point(18,18)});
+        .bindPopup(()=>this.createPlacePopup(loc),{className:'impact-place-popup',minWidth:210,maxWidth:280,maxHeight:Math.min(300,this.mapElement.nativeElement.clientHeight-100),autoPanPadding:L.point(18,18)});
       marker.getElement()?.setAttribute('aria-label',loc.name);
       marker.on('click',()=>this.zone.run(()=>this.onMarkerClick(loc)));
       marker.on('popupclose',()=>this.zone.run(()=>{if(this.selectedPlace?.id===loc.id)this.selectedPlace=null;}));
@@ -395,14 +406,16 @@ export class MapPage implements AfterViewInit, OnDestroy {
 
   getLeafletIcon(type: string): L.DivIcon {
     const category=this.category(type);
-    return L.divIcon({className:'custom-marker',
+    const cached=this.iconCache.get(type);if(cached)return cached;
+    const icon=L.divIcon({className:'custom-marker',
       html:`<div style="width:28px;height:28px;display:grid;place-items:center;background:${category.color};color:white;font:bold 14px system-ui;border:2px solid white;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 2px 5px #0005"><span style="transform:rotate(45deg)">${category.mark}</span></div>`,
       iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-28]});
+    this.iconCache.set(type,icon);return icon;
   }
 
   onMarkerClick(loc:PlaceResult){this.selectedPlace=loc;}
   trackPlace(_index:number,place:PlaceResult){return place.id;}
-  onSearchChange(){this.refreshResults();}
+  onSearchChange(){clearTimeout(this.searchTimer);this.searchTimer=setTimeout(()=>this.refreshResults(),130);}
   onFilterChange(type:PlaceType|'all'){this.selectedType=type;this.refreshResults();}
 
   handleGetDirections(p: EmergencyPlace) {

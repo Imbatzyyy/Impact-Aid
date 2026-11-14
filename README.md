@@ -1,54 +1,44 @@
-# Impact Aid 2.0.0
+<img src="src/assets/impact-shield.png" alt="Impact Aid shield" width="56">
 
-Android disaster-preparedness learning and emergency-directory app, built with Angular, Ionic, Capacitor, and Supabase.
+# Impact Aid
 
-## Release
+A Philippine disaster preparedness app for Android. Find a nearby response facility, read a field guide, or practice what to do before, during and after a disaster.
 
-The signed installable APK is generated at `release/Impact-Aid-2.0.0.apk`. See `release/INSTALL.md` for installation, verification, and limitations. `release/SHA256SUMS` identifies the final binary.
+**[Download the signed Android APK](https://github.com/Imbatzyyy/Impact-Aid/releases/download/v2.1.0/Impact-Aid-2.1.0.apk)** · [Installation and checksum](release/INSTALL.md) · [Release notes](https://github.com/Imbatzyyy/Impact-Aid/releases/tag/v2.1.0)
 
-The app uses Supabase project `xuutncpfupkosbqjgmei` for authentication, profiles, learning progress, quiz results, and personal contacts. Public Supabase configuration is in `src/environments`. No privileged backend or email credential belongs in the client.
+| In the app | What you can do |
+| --- | --- |
+| Emergency help | Open public emergency numbers and the places directory without an account. The Call button opens your dialer. |
+| Places | Find hospitals, police, fire stations, rescue/DRRM teams, local government offices and mapped evacuation facilities. See the phone’s reported location accuracy and open a pin for its address, available contacts and source. |
+| Learn | Read six illustrated guides in sections or watch their bundled videos. Return to your saved section and explicitly mark a guide complete. |
+| Practice | Take 15 questions from each topic’s bank of 50. Both question and choice order shuffle. Leave and resume on the same installation. |
+| My Progress | See completed guides, latest quiz scores, recent attempts, badges and a downloadable course certificate. |
 
-## Develop and build
+## Inside the Android app
 
-Use Node 24 (see `.nvmrc`), Java 21, and Android SDK 36. Android minimum SDK is 24.
+| Field guides | Practice question | My Progress |
+| --- | --- | --- |
+| <img src="docs/images/lessons.png" alt="The six guides, with reading status" width="210"> | <img src="docs/images/question.png" alt="A quiz question with four choices" width="210"> | <img src="docs/images/progress.png" alt="Course completion and topic records" width="210"> |
+
+## How quiz releases work
+
+The [QC academic calendar](docs/QUIZ-RELEASES.md) controls releases in Manila time. Supabase assigns a distinct set per topic, term, account and installation. The same installation can keep practicing its set; another installation gets a different combination. Supabase checks the 15 assigned IDs, grades the original answer choices, saves the attempt once and updates the topic score. Existing scores remain visible.
+
+## Run locally
+
+Use Node 24, Java 21, Android SDK 36 and an up-to-date Android System WebView. The Android minimum is API 24. The app uses Angular, Ionic, Capacitor, Leaflet and Supabase. Exact dependency versions are in the lockfile.
 
 ```sh
 npm ci
 npm run lint
 npm test
-npm start -- --host 127.0.0.1
+npm start
 ```
 
-Build a release:
+To build Android, set `JAVA_HOME` to JDK 21 and run `npm run build:android`. The unsigned Gradle artifact is under `android/app/build/outputs/apk/release/`. On the maintainer’s Mac, `python3 scripts/sign-android.py` signs it with the existing private release key. Keep that key outside Git and preserve it for updates.
 
-```sh
-npm run build
-npx cap sync android
-export JAVA_HOME=$(/usr/libexec/java_home -v21)
-cd android
-./gradlew assembleRelease
-cd ..
-python3 scripts/sign-android.py
-```
+## Data and connectivity
 
-The signing helper uses the existing private release keystore under `~/Library/Application Support/Impact Aid/signing/`. Preserve that folder and its password securely for future updates. The script creates a key only when neither keystore nor password exists; do not generate a replacement key for an already distributed app.
+Supabase handles email verification, password recovery, profiles, personal contacts, reading positions and quiz records. SQL migrations and email templates are in [supabase](supabase/). The APK uses a publishable key; privileged credentials and signing materials are excluded from this repository. Resend delivers account mail through Supabase SMTP.
 
-The repository excludes build output, private working files and keystores. Install the exact signed APK in `release`, not the unsigned Gradle output. The local `.work/runtime` Node installation was used for this repair; it is not required when a supported Node version is installed normally.
-
-## Backend and email
-
-- Schema and row access policies: `supabase/migrations/`.
-- Confirmation and recovery emails: `supabase/templates/`.
-- Migration fidelity, cutoff, and rollback: `docs/MIGRATION-CUTOVER.md`.
-- Cloudflare DNS records: `dns/impactaid.cfd.bind`.
-- Resend sender: `Impact Aid <no-reply@mail.impactaid.cfd>`.
-
-Email confirmation is required. Migrated users keep their existing password, but must verify their address in the app before signing in. Codes are entered in the app; do not put admin keys or email credentials into the APK.
-
-Both SQL migration versions are already recorded as applied on the live project. Do not rerun the creation SQL manually.
-
-## Operating boundaries
-
-Public emergency numbers are bundled and accessible from sign-in. The app opens the phone dialer; users place the call themselves. It does not dispatch emergency services, provide live disaster alerts, or guarantee active evacuation sites.
-
-Lesson materials and videos are bundled. Account data, progress saving, personal contacts, and map tiles use internet access. Unsaved offline results are not queued for synchronization. Certificates record learning in this app and are not professional emergency-response certification.
+The [17,294-place directory](docs/EMERGENCY-DIRECTORY.md) and lesson media ship with the APK. Map imagery, directions, account data, semester assignments and progress sync need internet. Quiz answers remain on this installation until a submission succeeds. Directory coverage and contact details can be incomplete; confirm shelter activation and access with the local authority. Impact Aid does not dispatch responders or report live road or shelter conditions.

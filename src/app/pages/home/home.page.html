@@ -1,7 +1,7 @@
 <ion-content class="home-content">
   <main class="home-shell">
     <header class="home-brand">
-      <div class="brand"><img src="assets/logo.png" alt="" /><span>Impact Aid<small>Philippine disaster preparedness</small></span></div>
+      <div class="brand"><img src="assets/impact-shield.png" alt="" /><span>Impact Aid<small>Philippine disaster preparedness</small></span></div>
       <button class="icon-button" aria-label="Settings" (click)="navigateTo('settings')"><ion-icon name="settings-outline"></ion-icon></button>
     </header>
     <div *ngIf="loadError" class="status-message" role="alert">Your progress couldn't load. <button (click)="ionViewWillEnter()">Try again</button></div>
@@ -25,7 +25,7 @@
       <div class="action-list">
         <button (click)="navigateTo('lessons')"><span class="action-icon"><ion-icon name="book-outline"></ion-icon></span><span><strong>Explore the lessons</strong><small>Practical guides for six types of disaster</small></span><ion-icon name="chevron-forward"></ion-icon></button>
         <button (click)="navigateTo('quiz')"><span class="action-icon"><ion-icon name="bulb-outline"></ion-icon></span><span><strong>Check what you know</strong><small>Short quizzes, at your own pace</small></span><ion-icon name="chevron-forward"></ion-icon></button>
-        <button (click)="navigateTo('map')"><span class="action-icon"><ion-icon name="map-outline"></ion-icon></span><span><strong>Find emergency places</strong><small>Hospitals and police facilities in Quezon City</small></span><ion-icon name="chevron-forward"></ion-icon></button>
+        <button (click)="navigateTo('map')"><span class="action-icon"><ion-icon name="map-outline"></ion-icon></span><span><strong>Find emergency places</strong><small>Hospitals, fire stations and local response teams</small></span><ion-icon name="chevron-forward"></ion-icon></button>
       </div>
     </section>
     <aside class="daily-note"><ion-icon name="shield-checkmark-outline"></ion-icon><div><h2>A small step for today</h2><p>{{ randomTip }}</p></div></aside>

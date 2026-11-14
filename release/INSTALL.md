@@ -1,6 +1,6 @@
-# Install Impact Aid 2.0.0
+# Install Impact Aid 2.1.0
 
-1. Copy `Impact-Aid-2.0.0.apk` to an Android phone (Android 7.0 / API 24 or newer).
+1. Copy `Impact-Aid-2.1.0.apk` to an Android phone (Android 7.0 / API 24 or newer).
 2. Open the APK and, if Android asks, allow installation from the file app/browser you are using.
 3. Install and launch **Impact Aid**.
 4. Use your existing email and password. If asked to verify your email, select **Send a code**, check your inbox/spam folder, and enter the code in the app.
@@ -9,12 +9,12 @@
 
 The APK is approximately 167 MiB (175 MB), primarily because six lesson videos are available in the package. Ensure sufficient free storage for installation.
 
-This release uses package ID `io.ionic.starter`, retained from the original project, and version code 2. It has a new, privately retained release signing key. If Android reports a signature conflict with an older build, back up anything you need before uninstalling that older build, then install this APK. Do not clear or delete the Supabase account.
+This release uses package ID `io.ionic.starter`, retained from the original project, and version code 3. It uses the same signing key as Impact Aid 2.0.0 and installs over that release. If Android reports a signature conflict with an older build, back up anything you need before uninstalling that older build, then install this APK. Do not clear or delete the Supabase account.
 
 The checksum is in `SHA256SUMS`. Verify on macOS with:
 
 ```sh
-shasum -a 256 Impact-Aid-2.0.0.apk
+shasum -a 256 Impact-Aid-2.1.0.apk
 ```
 
 Emergency calling requires phone service. A map fix can be approximate indoors or when only approximate location permission is granted. The app shows the accuracy and update state instead of promising exact GPS precision.

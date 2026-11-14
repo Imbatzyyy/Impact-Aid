@@ -21,11 +21,16 @@ export function distanceKm(a:{lat:number;lng:number},b:{lat:number;lng:number}):
 }
 export function findPlaces(places:EmergencyPlace[],center:{lat:number;lng:number},radius:number,type:PlaceType|'all',query:string):PlaceResult[]{
   const words=query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
-  return places.filter(p=>type==='all'||p.type===type)
-    .filter(p=>words.every(word=>`${p.name} ${p.address}`.toLocaleLowerCase().includes(word)))
-    .map(p=>({...p,distance:distanceKm(p,center)}))
-    .filter(p=>radius===0||p.distance<=radius)
-    .sort((a,b)=>a.distance-b.distance||a.name.localeCompare(b.name));
+  const results:PlaceResult[]=[];
+  // The latitude band is a conservative bound on spherical distance, including near either pole.
+  const band=radius*180/(Math.PI*6371);
+  for(const place of places){
+    if(type!=='all'&&place.type!==type||radius>0&&Math.abs(center.lat-place.lat)>band+1e-8)continue;
+    if(words.length){const text=(place.name+' '+place.address).toLocaleLowerCase();if(!words.every(w=>text.includes(w)))continue;}
+    const distance=distanceKm(place,center);
+    if(!radius||distance<=radius)results.push({...place,distance});
+  }
+  return results.sort((a,b)=>a.distance-b.distance||a.name.localeCompare(b.name));
 }
 export function escapeMapText(value:string):string{
   return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]!));

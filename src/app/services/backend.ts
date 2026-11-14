@@ -10,13 +10,14 @@ export async function account() {
   if(!user) throw new Error('Please sign in again.');
   return user;
 }
-export async function progressData() {
+export async function progressData(withAttempts=false) {
   const user=await account();
-  const [profile,lessons,quizzes]=await Promise.all([
+  const [profile,lessons,quizzes,history]=await Promise.all([
     db.from('profiles').select('username,address').eq('id',user.id).single(),
     db.from('lesson_completions').select('lesson_id').eq('user_id',user.id),
-    db.from('quiz_results').select('topic,percentage,last_taken').eq('user_id',user.id)
+    db.from('quiz_results').select('topic,percentage,last_taken').eq('user_id',user.id),
+    withAttempts ? db.from('quiz_attempts').select('topic,correct,total,taken_at').eq('user_id',user.id).order('taken_at',{ascending:false}).limit(10) : Promise.resolve({data:[],error:null})
   ]);
-  for(const response of [profile,lessons,quizzes]) if(response.error) throw response.error;
-  return {user,username:String(profile.data!.username),lessons:(lessons.data||[]).map(r=>Number(r.lesson_id)),scores:topics.map(topic=>quizzes.data?.find(r=>r.topic===topic)?.percentage ?? -1)};
+  for(const response of [profile,lessons,quizzes,history]) if(response.error) throw response.error;
+  return {user,attempts:history.data??[],username:String(profile.data!.username),lessons:(lessons.data||[]).map(r=>Number(r.lesson_id)),scores:topics.map(topic=>quizzes.data?.find(r=>r.topic===topic)?.percentage ?? -1)};
 }

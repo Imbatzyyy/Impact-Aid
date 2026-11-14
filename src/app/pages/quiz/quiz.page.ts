@@ -1,251 +1,56 @@
-import { ChangeDetectionStrategy } from '@angular/core';
-import { db, session, account, progressData, topics } from '../../services/backend';
-import { Component, OnInit } from '@angular/core';
-import { IonButton, IonContent, IonIcon, IonSpinner, ToastController, AlertController } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Badge, getBadgeForScore } from 'src/app/models/badge.model';
-import { ModalController } from '@ionic/angular';
-import { BadgeAlertComponent } from 'src/app/components/badge-alert.component';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
+import { IonContent, IonIcon } from '@ionic/angular';
+import { RouterLink } from '@angular/router';
+import { db, progressData, topics } from '../../services/backend';
+import { COURSE } from '../../models/course';
+import { QUIZ_DATA, prepareQuiz } from '../../models/quiz-data';
+import { calendarState,displayDate,Term } from '../../models/academic-calendar';
 
-import { Quiz, QUIZ_DATA, prepareQuiz } from '../../models/quiz-data';
-
-@Component({
-  changeDetection: ChangeDetectionStrategy.Eager,
-  selector: 'app-quiz',
-  standalone: true,
-  imports: [IonButton, IonContent, IonIcon, IonSpinner, CommonModule, FormsModule],
-  templateUrl: './quiz.page.html',
-  styleUrls: ['./quiz.page.scss'],
-})
-export class QuizPage implements OnInit {
-  quizData: Quiz[] = [];
-  activeDisaster: string | null = null;
-  currentQuiz: Quiz | null = null;
-  currentQuestion = 0;
-  selectedAnswers: number[] = [];
-  showResults = false;
-  isSubmitting = false;
-  earnedBadge: Badge | null = null;
-
-  constructor(
-    private toastController: ToastController,
-    private alertController: AlertController,
-    private modalCtrl: ModalController,
-    private router: Router
-  ) {}
-
-  ngOnInit() {
-    this.quizData = QUIZ_DATA.map(quiz => ({
-      ...quiz,
-      questions: []
-    }));
+interface Draft { attempt:string; assignment:string; topic:number; label:string; page:number; items:{id:number;order:number[]}[]; answers:number[] }
+interface Release {id:string; ids:number[]; label:string; term:string}
+@Component({selector:'app-quiz',standalone:true,changeDetection:ChangeDetectionStrategy.Eager,imports:[IonContent,IonIcon,RouterLink],templateUrl:'./quiz.page.html',styleUrls:['./quiz.page.scss']})
+export class QuizPage {
+  @ViewChild(IonContent) content?:IonContent;
+  readonly course=COURSE;readonly displayDate=displayDate;
+  terms:Term[]=[];scores:number[]=[];uid=''; busy=false; loading=true;problem=''; result:number|null=null;
+  draft:Draft|null=null;private epoch=0;
+  term=calendarState([]);
+  get quiz(){return this.draft?QUIZ_DATA[this.draft.topic]:null;}
+  get item(){return this.draft?.items[this.draft.page];}
+  private key(topic:number){return 'impact-aid.quiz.v1.'+this.uid+'.'+topic;}
+  private read(topic:number):Draft|null {
+    try{return JSON.parse(localStorage.getItem(this.key(topic))??'null');}catch{return null;}
   }
-
-  initializeQuiz(id: number) {
-    const quizTemplate = QUIZ_DATA.find(q => q.id === id);
-    if (quizTemplate && quizTemplate.allQuestions && quizTemplate.allQuestions.length > 0) {
-      // Shuffle and select 10 random questions
-      const selected = prepareQuiz(quizTemplate.allQuestions);
-      
-      this.currentQuiz = {
-        ...quizTemplate,
-        questions: selected
-      };
-      
-      this.activeDisaster = this.currentQuiz.name.toLowerCase();
-      this.currentQuestion = 0;
-      this.selectedAnswers = new Array(10).fill(-1);
-      this.showResults = false;
-      this.earnedBadge = null;
-    }
+  private remember(){if(this.draft)localStorage.setItem(this.key(this.draft.topic),JSON.stringify(this.draft));}
+  hasDraft(topic:number){return !!this.uid&&!!this.read(topic);}
+  async ionViewWillEnter(){
+    const epoch=++this.epoch;this.draft=null;this.result=null;this.uid='';this.terms=[];this.term=calendarState([]);this.scores=[];this.problem='';this.loading=true;this.busy=false;
+    try{const [p,cal]=await Promise.all([progressData(),db.from('school_terms').select('id,label,starts,ends')]);if(cal.error)throw cal.error;
+      if(epoch!==this.epoch)return;this.uid=p.user.id;this.scores=p.scores;this.terms=cal.data??[];this.term=calendarState(this.terms);
+    }catch{if(epoch===this.epoch)this.problem='Your quiz library could not load. Reconnect and try again.';}finally{if(epoch===this.epoch)this.loading=false;}
   }
-
-  selectAnswer(index: number) {
-    if (this.currentQuiz) this.selectedAnswers[this.currentQuestion] = index;
+  ionViewWillLeave(){this.epoch++;this.draft=null;this.result=null;this.busy=false;this.uid='';}
+  library(){if(this.busy)return;this.draft=null;this.result=null;this.problem='';void this.content?.scrollToTop(0);}
+  async start(topic:number){
+    if(this.busy||!this.uid)return;this.busy=true;this.problem='';const epoch=this.epoch;
+    try{
+      const key='impact-aid.quiz.install';const device=localStorage.getItem(key)??crypto.randomUUID();localStorage.setItem(key,device);
+      const r=await db.rpc('get_quiz_release',{p_topic:topics[topic],p_device:device});if(r.error)throw r.error;
+      if(epoch!==this.epoch)return;const release=r.data as Release;const bank=QUIZ_DATA[topic].allQuestions;
+      const saved=this.read(topic);this.result=null;
+      if(saved&&saved.assignment===release.id&&saved.items?.length===15&&saved.answers?.length===15&&saved.page>=0&&saved.page<15)this.draft=saved;
+      else{
+        const items=prepareQuiz(release.ids.map(i=>bank[i])).map(q=>{const id=bank.findIndex(v=>v.question===q.question);return {id,order:q.options.map(o=>bank[id].options.indexOf(o))};});
+        this.draft={topic,attempt:crypto.randomUUID(),assignment:release.id,label:release.label,page:0,items,answers:Array(15).fill(-1)};this.remember();
+      }void this.content?.scrollToTop(0);
+    }catch{if(epoch===this.epoch)this.problem='Could not open the quiz. Check your connection and try again.';}finally{if(epoch===this.epoch)this.busy=false;}
   }
-
-  nextQuestion() {
-    if (this.currentQuiz && this.currentQuestion < (this.currentQuiz.questions?.length || 0) - 1)
-      this.currentQuestion++;
-  }
-
-  previousQuestion() {
-    if (this.currentQuestion > 0) this.currentQuestion--;
-  }
-
-  calculateScore(): number {
-    if (!this.currentQuiz || !this.currentQuiz.questions) return 0;
-    const correct = this.selectedAnswers.filter(
-      (a, i) => a === this.currentQuiz!.questions[i].correctAnswer
-    ).length;
-    return Math.round((correct / this.currentQuiz.questions.length) * 100);
-  }
-
-  getCorrectCount(): number {
-    if (!this.currentQuiz || !this.currentQuiz.questions) return 0;
-    return this.selectedAnswers.filter(
-      (a, i) => a === this.currentQuiz!.questions[i].correctAnswer
-    ).length;
-  }
-
-  isAnswerCorrect(i: number, j: number): boolean {
-    return (
-      this.currentQuiz !== null &&
-      this.currentQuiz.questions &&
-      this.selectedAnswers[i] === j &&
-      this.currentQuiz.questions[i].correctAnswer === j
-    );
-  }
-
-  isAnswerWrong(i: number, j: number): boolean {
-    return (
-      this.currentQuiz !== null &&
-      this.currentQuiz.questions &&
-      this.selectedAnswers[i] === j &&
-      this.currentQuiz.questions[i].correctAnswer !== j
-    );
-  }
-
-  getBadgeContainerClass(): string {
-    const score = this.calculateScore();
-    if (score >= 90) return 'bg-yellow-100';
-    if (score >= 80) return 'bg-purple-100';
-    if (score >= 60) return 'bg-blue-100';
-    if (score >= 40) return 'bg-orange-100';
-    return 'bg-red-100';
-  }
-
-  getBadgeIcon(): string {
-    const score = this.calculateScore();
-    if (score >= 90) return 'trophy-outline';
-    if (score >= 80) return 'star-outline';
-    if (score >= 60) return 'ribbon-outline';
-    if (score >= 40) return 'thumbs-up-outline';
-    return 'sad-outline';
-  }
-
-  getBadgeIconClass(): string {
-    const score = this.calculateScore();
-    if (score >= 90) return 'text-yellow-500';
-    if (score >= 80) return 'text-purple-500';
-    if (score >= 60) return 'text-blue-500';
-    if (score >= 40) return 'text-orange-500';
-    return 'text-red-500';
-  }
-
-  getBadgeTitle(): string {
-    const score = this.calculateScore();
-    if (score === 100) return 'Perfect Score!';
-    if (score >= 90) return 'Outstanding Work!';
-    if (score >= 80) return 'Excellent Work!';
-    if (score >= 60) return 'Great Job!';
-    if (score >= 40) return 'Good Effort!';
-    return 'Keep Practicing!';
-  }
-
-  getBadgeMessage(): string {
-    const score = this.calculateScore();
-    const name = this.currentQuiz?.name || 'disaster';
-    if (score >= 90) return `You're a ${name} preparedness master!`;
-    if (score >= 80) return `You have excellent ${name} knowledge!`;
-    if (score >= 60) return `You understand ${name} safety well!`;
-    if (score >= 40) return `You're learning about ${name} preparedness!`;
-    return `Review the ${name} lesson to improve!`;
-  }
-
-  async submitQuiz() {
-    if (this.isSubmitting || !this.currentQuiz || !this.currentQuiz.questions || this.selectedAnswers.includes(-1)) return;
-    this.isSubmitting = true;
-
-    const score = this.getCorrectCount();
-    const percentage = this.calculateScore();
-    const totalQuestions = this.currentQuiz.questions.length;
-
-    try {
-      const user=await account();
-      const {error}=await db.from('quiz_results').upsert({user_id:user.id,topic:this.activeDisaster,correct:score,total:totalQuestions,last_taken:new Date().toISOString()},{onConflict:'user_id,topic'});
-      if(error) throw error;
-      const badge=getBadgeForScore(this.currentQuiz.name,percentage);
-      this.earnedBadge=badge;
-      if(badge) await this.showBadgeAlert(badge,percentage);
-      this.showResults = true;
-    } catch (err) {
-      console.error('Error saving quiz:', err);
-      await this.presentToast('Something went wrong while saving your progress.', 'danger');
-    } finally {
-      this.isSubmitting = false;
-    }
-  }
-
-  async showBadgeAlert(badge: Badge, score: number) {
-    const modal = await this.modalCtrl.create({
-      component: BadgeAlertComponent,
-      componentProps: {
-        badgeEmoji: badge.emoji,
-        badgeName: badge.name,
-        badgeDescription: badge.description,
-        score,
-      },
-      cssClass: 'badge-modal',
-      backdropDismiss: false,
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data === 'progress') {
-      this.router.navigate(['/progress']);
-    }
-  }
-
-  async presentToast(message: string, color: string = 'primary') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      position: 'top',
-      color,
-    });
-    toast.present();
-  }
-
-  retryQuiz() {
-    if (this.currentQuiz) {
-      this.initializeQuiz(this.currentQuiz.id);
-    }
-  }
-
-  backToSelection() {
-    this.activeDisaster = null;
-    this.currentQuiz = null;
-    this.showResults = false;
-    this.earnedBadge = null;
-  }
-
-  get progress(): number {
-    if (!this.currentQuiz || !this.currentQuiz.questions) return 0;
-    const answered = this.selectedAnswers.filter(a => a !== -1).length;
-    return (answered / this.currentQuiz.questions.length) * 100;
-  }
-
-  getGradient(bgClass: string | undefined): string {
-    switch (bgClass) {
-      case 'bg-linear-to-r from-orange-400 to-red-500':
-        return 'linear-gradient(90deg, #fb923c 0%, #ef4444 100%)';
-      case 'bg-linear-to-r from-sky-400 to-blue-500':
-        return 'linear-gradient(90deg, #38bdf8 0%, #3b82f6 100%)';
-      case 'bg-linear-to-r from-violet-500 to-indigo-500':
-        return 'linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%)';
-      case 'bg-linear-to-r from-cyan-400 to-blue-500':
-        return 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%)';
-      case 'bg-linear-to-r from-yellow-400 to-orange-500':
-        return 'linear-gradient(90deg, #facc15 0%, #fb923c 100%)';
-      case 'bg-linear-to-r from-red-500 to-pink-500':
-        return 'linear-gradient(90deg, #ef4444 0%, #ec4899 100%)';
-      default:
-        return 'linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%)';
-    }
+  choose(option:number){if(this.draft&&!this.busy){this.draft.answers[this.draft.page]=option;this.remember();}}
+  move(to:number){if(!this.draft||this.busy||to<0||to>=15)return;this.draft.page=to;this.remember();void this.content?.scrollToTop(0);}
+  async submit(){
+    const d=this.draft;if(!d||this.busy||d.answers.some(a=>a<0))return;this.busy=true;this.problem='';const epoch=this.epoch;
+    try{const r=await db.rpc('submit_semester_quiz',{p_attempt:d.attempt,p_assignment:d.assignment,p_answers:d.items.map((item,i)=>({question_id:item.id,choice:d.answers[i]}))});if(r.error)throw r.error;
+      if(epoch!==this.epoch)return;this.result=Number(r.data);this.scores[d.topic]=Math.round(this.result*100/15);localStorage.removeItem(this.key(d.topic));void this.content?.scrollToTop(0);
+    }catch{if(epoch===this.epoch)this.problem='Your answers are still on this device. Reconnect and tap Save result again.';}finally{if(epoch===this.epoch)this.busy=false;}
   }
 }
-
