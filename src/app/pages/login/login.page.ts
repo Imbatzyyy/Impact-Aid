@@ -1,3 +1,4 @@
+import { GoogleAuthService } from '../../services/google-auth.service';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { db } from '../../services/backend';
 import { Component } from '@angular/core';
@@ -29,7 +30,7 @@ export class LoginPage {
   }
   private clearRecovery(){this.recoveryEmail=this.recoveryUserId='';}
   async sendCode(mode:'confirm'|'recovery'){
-    if(this.loading)return;
+    if(this.loading||this.google.busy)return;
     this.mode=mode;this.notice='';
     if(!this.email.trim()){this.notice='Enter your email first.';return;}
     this.clearRecovery();this.code='';
@@ -86,7 +87,8 @@ export class LoginPage {
 
   constructor(
     private router: Router,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    public google:GoogleAuthService
   ) {}
 
   togglePassword() {
@@ -94,7 +96,7 @@ export class LoginPage {
   }
 
   async login() {
-    if(this.loading)return;
+    if(this.loading||this.google.busy)return;
     if (!this.email || !this.password) {
       const alert = await this.alertCtrl.create({
         header: 'Missing Fields',

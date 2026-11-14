@@ -1,25 +1,32 @@
 <ion-content class="auth-content">
   <div class="auth-shell">
-    <header class="auth-brand"><img src="assets/logo.png" alt="" /><div>Impact Aid<span>Be informed. Be prepared.</span></div></header>
+    <header class="auth-brand"><img src="assets/impact-shield.png" alt="" /><div>Impact Aid<span>Be informed. Be prepared.</span></div></header>
     <a routerLink="/emergency" class="auth-help"><ion-icon name="call-outline"></ion-icon><span>Need emergency help?<small>View public hotlines without signing in</small></span><ion-icon name="chevron-forward"></ion-icon></a>
     <main class="auth-card">
       <p class="auth-eyebrow">Your preparedness companion</p>
       <h1>{{ mode==='login' ? 'Welcome back.' : mode==='confirm' ? 'Check your inbox.' : 'Reset your password.' }}</h1>
       <p class="auth-intro">{{ mode==='login' ? 'Sign in to continue learning and keep your progress together.' : 'Enter the code from your email. It is only for you — never share it.' }}</p>
+      @if(mode==='login'){
+      <button type="button" class="google-button" (click)="google.start()" [disabled]="loading||google.busy"><img src="assets/google-g.svg" alt=""><span>{{google.busy?'Opening Google…':'Sign in with Google'}}</span></button>
+      <p class="google-help">Use your Google account. No separate Impact Aid password needed.</p>
+      @if(google.busy){<button class="text-button" (click)="google.cancel()">Cancel Google sign-in</button>}
+      <div class="auth-divider"><span>or use email</span></div>
+      }
+      @if(google.message){<p class="auth-notice" role="status">{{google.message}}</p>}
       <ion-input label="Email address" labelPlacement="stacked" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" class="input-box" [(ngModel)]="email" [readonly]="recoveryVerified || loading"></ion-input>
       <ng-container *ngIf="mode==='login'">
         <div class="password-row">
           <ion-input label="Password" labelPlacement="stacked" class="input-box" [type]="passwordVisible ? 'text' : 'password'" autocomplete="current-password" placeholder="Your password" [(ngModel)]="password" (keyup.enter)="login()"></ion-input>
           <button type="button" class="eye-btn" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'" (click)="togglePassword()"><ion-icon [name]="passwordVisible ? 'eye-outline' : 'eye-off-outline'"></ion-icon></button>
         </div>
-        <button class="text-button forgot-button" (click)="sendCode('recovery')" [disabled]="loading">Forgot password?</button>
-        <ion-button expand="block" class="auth-submit" (click)="login()" [disabled]="loading">{{ loading ? 'Signing in…' : 'Sign in' }}<ion-icon name="arrow-forward-outline" slot="end"></ion-icon></ion-button>
+        <button class="text-button forgot-button" (click)="sendCode('recovery')" [disabled]="loading||google.busy">Forgot password?</button>
+        <ion-button expand="block" class="auth-submit" (click)="login()" [disabled]="loading||google.busy">{{ loading ? 'Signing in…' : 'Sign in' }}<ion-icon name="arrow-forward-outline" slot="end"></ion-icon></ion-button>
       </ng-container>
       <ng-container *ngIf="mode!=='login'">
         <ion-input *ngIf="!recoveryVerified" label="Email code" labelPlacement="stacked" class="input-box" placeholder="Enter your code" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="code"></ion-input>
         <ion-input *ngIf="mode==='recovery'" label="New password" labelPlacement="stacked" class="input-box" type="password" autocomplete="new-password" placeholder="At least 6 characters" [(ngModel)]="newPassword"></ion-input>
-        <ion-button expand="block" class="auth-submit" (click)="verify()" [disabled]="loading">{{ loading ? 'Please wait…' : recoveryVerified ? 'Save new password' : 'Verify code' }}</ion-button>
-        <div class="auth-options"><button *ngIf="!recoveryVerified" class="text-button" [disabled]="loading" (click)="sendCode(mode==='confirm'?'confirm':'recovery')">Send a code</button><button class="text-button" (click)="mode='login';notice=''">Back to sign in</button></div>
+        <ion-button expand="block" class="auth-submit" (click)="verify()" [disabled]="loading||google.busy">{{ loading ? 'Please wait…' : recoveryVerified ? 'Save new password' : 'Verify code' }}</ion-button>
+        <div class="auth-options"><button *ngIf="!recoveryVerified" class="text-button" [disabled]="loading||google.busy" (click)="sendCode(mode==='confirm'?'confirm':'recovery')">Send a code</button><button class="text-button" (click)="mode='login';notice=''">Back to sign in</button></div>
       </ng-container>
       <p *ngIf="notice" role="status" class="auth-notice">{{notice}}</p>
       <p class="auth-switch">New to Impact Aid? <a routerLink="/signup">Create an account</a></p>

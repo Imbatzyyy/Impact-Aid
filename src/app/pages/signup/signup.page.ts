@@ -1,3 +1,4 @@
+import { GoogleAuthService } from '../../services/google-auth.service';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { db, session, account, progressData, topics } from '../../services/backend';
 import { Component } from '@angular/core';
@@ -25,7 +26,8 @@ export class SignupPage {
 
   constructor(
     private router: Router,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    public google:GoogleAuthService
   ) {}
 
   togglePassword() {
@@ -33,7 +35,7 @@ export class SignupPage {
   }
 
   async createAccount() {
-    if(this.loading)return;
+    if(this.loading||this.google.busy)return;
     // ✅ Basic validation
     if (!this.email || !this.password || !this.confirmPassword || !this.username) {
       const alert = await this.alertCtrl.create({

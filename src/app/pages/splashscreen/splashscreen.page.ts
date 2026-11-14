@@ -1,3 +1,4 @@
+import { GoogleAuthService } from '../../services/google-auth.service';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { db, session, account, progressData, topics } from '../../services/backend';
 import { Component, OnInit } from '@angular/core';
@@ -15,9 +16,10 @@ import { Router } from '@angular/router';
 })
 export class SplashscreenPage implements OnInit {
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private google:GoogleAuthService) {}
 
   async ngOnInit() {
+    await this.google.ready();
     const signedIn = await session().catch(()=>null);
     await this.router.navigateByUrl(signedIn ? '/home' : '/login',{replaceUrl:true});
   }

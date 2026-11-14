@@ -4,7 +4,7 @@
 
 A Philippine disaster preparedness app for Android. Find a nearby response facility, read a field guide, or practice what to do before, during and after a disaster.
 
-**[Download the signed Android APK](https://github.com/Imbatzyyy/Impact-Aid/releases/download/v2.1.0/Impact-Aid-2.1.0.apk)** · [Installation and checksum](release/INSTALL.md) · [Release notes](https://github.com/Imbatzyyy/Impact-Aid/releases/tag/v2.1.0)
+**[Download the signed Android APK](https://github.com/Imbatzyyy/Impact-Aid/releases/download/v2.2.0/Impact-Aid-2.2.0.apk)** · [Installation and checksum](release/INSTALL.md) · [Release notes](https://github.com/Imbatzyyy/Impact-Aid/releases/tag/v2.2.0)
 
 | In the app | What you can do |
 | --- | --- |
@@ -16,9 +16,15 @@ A Philippine disaster preparedness app for Android. Find a nearby response facil
 
 ## Inside the Android app
 
-| Field guides | Practice question | My Progress |
-| --- | --- | --- |
-| <img src="docs/images/lessons.png" alt="The six guides, with reading status" width="210"> | <img src="docs/images/question.png" alt="A quiz question with four choices" width="210"> | <img src="docs/images/progress.png" alt="Course completion and topic records" width="210"> |
+| Sign in | Field guides | Practice question | My Progress |
+| --- | --- | --- | --- |
+| <img src="docs/images/google-login.png" alt="Google and email sign-in, with public emergency help" width="210"> | <img src="docs/images/lessons.png" alt="The six guides, with reading status" width="210"> | <img src="docs/images/question.png" alt="A quiz question with four choices" width="210"> | <img src="docs/images/progress.png" alt="Course completion and topic records" width="210"> |
+
+## Sign in with Google
+
+Choose **Sign in with Google** or **Sign up with Google**. Supabase creates a new profile on the first visit and signs returning users into their existing account. Android opens the system browser and returns through a PKCE-protected callback. Email/password and verification codes remain available. [Configuration and testing notes](docs/GOOGLE-SIGN-IN.md).
+
+[About Impact Aid](https://imbatzyyy.github.io/Impact-Aid/) · [Privacy information](https://imbatzyyy.github.io/Impact-Aid/privacy.html) · [Terms](https://imbatzyyy.github.io/Impact-Aid/terms.html)
 
 ## How quiz releases work
 

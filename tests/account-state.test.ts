@@ -40,6 +40,8 @@ vi.mock('../src/app/services/backend', () => ({
   topics: ['earthquake', 'tsunami', 'typhoon', 'flood', 'landslide', 'volcanic eruption'],
 }));
 
+vi.mock('../src/app/services/google-auth.service',()=>({GoogleAuthService:class{busy=false}}));
+
 import { LoginPage } from '../src/app/pages/login/login.page';
 import { SettingsPage } from '../src/app/pages/settings/settings.page';
 import { ProgressPage } from '../src/app/pages/progress/progress.page';
@@ -63,7 +65,7 @@ function controllers() {
 }
 function recoveryPage() {
   const { router } = controllers();
-  const page = new LoginPage(router as never, {} as never);
+  const page = new LoginPage(router as never, {} as never, {busy:false} as never);
   page.mode = 'recovery';
   page.email = syntheticSession.user.email;
   page.code = '12345678';

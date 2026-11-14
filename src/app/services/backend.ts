@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
-export const db = createClient(environment.url, environment.publishableKey, {auth:{detectSessionInUrl:false}});
+export const db = createClient(environment.url, environment.publishableKey, {auth:{detectSessionInUrl:false,flowType:'pkce'}});
 export const topics = ['earthquake','tsunami','typhoon','flood','landslide','volcanic eruption'];
 export async function session() {
   const {data,error}=await db.auth.getSession(); if(error) throw error; return data.session;

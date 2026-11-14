@@ -1,3 +1,4 @@
+import { GoogleAuthService } from './services/google-auth.service';
 import { Capacitor } from '@capacitor/core';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { Component } from '@angular/core';
@@ -13,12 +14,13 @@ import { SplashScreen } from '@capacitor/splash-screen';
   standalone: true,
 })
 export class AppComponent {
-  constructor(private platform: Platform) {
+  constructor(private platform: Platform, private google:GoogleAuthService) {
     this.initializeApp();
   }
 
   async initializeApp() {
     await this.platform.ready();
+    void this.google.ready();
     if(!Capacitor.isNativePlatform())return;
     try {
       // ✅ Fix "compressed" layout and use full height
