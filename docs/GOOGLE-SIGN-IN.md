@@ -16,7 +16,7 @@ The Google project is published for external users. Google's consent UI may disp
 
 ## Session and profile behavior
 
-The Supabase client uses PKCE, retaining its verifier on the device and exchanging the returned code once. The app validates the callback scheme, host and path, processes both live and cold-launch Android intents, and handles duplicate callbacks, denial, expiry and network errors. It opens Google using the system browser through Capacitor, never in the app's embedded WebView. Password and email-code flows remain available.
+The Supabase client uses PKCE, retaining its verifier on the device and exchanging the returned code once. The app validates the callback scheme, host and path, processes both live and cold-launch Android intents, and handles duplicate callbacks, denial, expiry and network errors. It opens Google using the system browser through Capacitor, never in the app's embedded WebView. Email/password and signup confirmation codes remain available. From 2.3.0, password recovery uses a secure link to the hosted reset page.
 
 New Google users get a profile name from `full_name` or `name`. Existing profiles are not overwritten. Supabase handles same-email identity linking according to its verification rules; the app does not copy or merge records across user IDs. Use the same verified email as an existing account to retain its learning record.
 

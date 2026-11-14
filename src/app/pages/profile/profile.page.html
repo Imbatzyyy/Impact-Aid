@@ -1,8 +1,42 @@
-<ion-header><ion-toolbar><ion-title>My profile</ion-title></ion-toolbar></ion-header>
-<ion-content><form class="page-body p-6 space-y-5" (ngSubmit)="save()">
-<p class="text-slate-600">{{email}}</p>
-<label class="block">Display name<input class="block border rounded-xl p-3 w-full" required maxlength="150" name="username" [(ngModel)]="username"></label>
-<label class="block">Address (optional)<input class="block border rounded-xl p-3 w-full" maxlength="500" name="address" [(ngModel)]="address"></label>
-<button type="submit" class="profile-save" [disabled]="!ready || !username.trim()">Save profile</button>
-<p role="status">{{message}}</p><button *ngIf="!ready && message" type="button" (click)="ionViewWillEnter()">Retry</button>
-</form></ion-content>
+<ion-content class="profile-content">
+ <main class="profile-shell">
+  <header class="profile-heading"><a routerLink="/home" class="back" aria-label="Back to Home"><ion-icon name="arrow-back-outline"></ion-icon></a><div><p class="eyebrow">Your account</p><h1>My profile</h1></div><img src="assets/impact-shield.png" alt="Impact Aid"></header>
+  @if(message){<p class="notice" role="status">{{message}}</p>}
+  @if(!ready){<section class="profile-card loading"><h2>{{message?'Let’s try that again.':'Getting your profile…'}}</h2><p>Your details belong to your account.</p>@if(message){<button class="primary" (click)="ionViewWillEnter()">Try again</button>}</section>}
+  @if(ready && profile){
+  <section class="identity-card">
+   <div class="portrait" [class.large]="editing">@if(photo){<img [src]="photo" alt="Your profile photo">}@else{<span>{{initials}}</span>}</div>
+   <div class="identity-copy"><p class="eyebrow">A little more you</p><h2>{{profile.full_name || profile.username}}</h2><p>{{profile.username}}</p></div>
+   @if(!editing){<button class="secondary edit-button" (click)="edit()">Edit profile <ion-icon name="arrow-forward-outline"></ion-icon></button>}
+   @if(editing){<div class="photo-actions"><label class="secondary photo-pick" for="profile-photo">{{processing?'Preparing photo…':'Change photo'}}<input id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp" (change)="choosePhoto($event)" [disabled]="processing||saving"></label>@if(photo){<button class="text-button" type="button" (click)="removePhoto()" [disabled]="saving||processing">Remove photo</button>}<small>A square preview. JPG, PNG or WebP, up to 10 MB.</small></div>}
+  </section>
+  @if(!editing){
+   <section class="profile-card"><div class="section-title"><ion-icon name="shield-checkmark-outline"></ion-icon><div><h2>About you</h2><p>Keep it as simple as you like.</p></div></div><dl class="details"><div><dt>Full name</dt><dd>{{profile.full_name || 'Not added'}}</dd></div><div><dt>Username</dt><dd>{{profile.username}}</dd></div><div><dt>Age</dt><dd>{{profile.age === null ? 'Not added' : profile.age + ' years'}}</dd></div><div><dt>Mobile number</dt><dd>{{profile.phone || 'Not added'}}</dd></div></dl></section>
+   <section class="profile-card"><div class="section-title"><ion-icon name="location-outline"></ion-icon><div><h2>Your address</h2><p>Optional, and only part of your profile.</p></div></div><p class="address-value">{{profile.address || 'You haven’t added an address. You can leave this blank.'}}</p></section>
+  }@else{
+   <form (ngSubmit)="save()" novalidate>
+    <fieldset [disabled]="saving"><section class="profile-card"><div class="section-title"><ion-icon name="shield-checkmark-outline"></ion-icon><div><h2>About you</h2><p>Choose how you want to appear in Impact Aid.</p></div></div>
+    <div class="field-grid"><label>Full name <span>optional</span><input name="fullName" autocomplete="name" maxlength="150" placeholder="Your full name" [(ngModel)]="draft.full_name"></label><label>Username <span>required</span><input name="username" autocomplete="nickname" maxlength="150" required placeholder="What should we call you?" [(ngModel)]="draft.username"><small>This is your display name. It doesn’t change how you sign in.</small></label><label>Age <span>optional</span><input name="age" type="number" inputmode="numeric" min="0" max="120" step="1" placeholder="Your age" [(ngModel)]="draft.age"></label><label>Mobile number <span>optional</span><input name="phone" type="tel" autocomplete="tel" maxlength="32" placeholder="09XX XXX XXXX" [(ngModel)]="draft.phone"></label></div>
+    </section>
+    <section class="profile-card"><div class="section-title"><ion-icon name="location-outline"></ion-icon><div><h2>Your address <span>optional</span></h2><p>Start typing, then tap a matching place. No long menus.</p></div></div>
+     <div class="field-grid">
+      <div class="field wide"><label for="city-search">City or municipality</label><input id="city-search" name="city" autocomplete="off" maxlength="150" placeholder="Try Quezon City" [ngModel]="draft.city_name" (ngModelChange)="cityTyped($event)" (keydown.escape)="citySuggestions=[]" aria-describedby="city-hint" [attr.aria-controls]="citySuggestions.length?'city-suggestions':null"><small id="city-hint">{{addressLoading?'Loading Philippine places…':'Suggestions appear as you type. You can also enter a place manually.'}}</small>
+      @if(citySuggestions.length){<ul id="city-suggestions" class="suggestions" aria-label="Matching cities and municipalities">@for(place of citySuggestions;track place.code){<li><button type="button" (click)="selectCity(place)"><span>{{place.name}}<small>{{place.province || place.region}}</small></span><ion-icon name="arrow-forward-outline"></ion-icon></button></li>}</ul>}
+      </div>
+      @if(draft.region_name){<p class="selected-place wide"><ion-icon name="location-outline"></ion-icon>{{draft.province_name ? draft.province_name + ' · ' : ''}}{{draft.region_name}}</p>}
+      <div class="field wide"><label for="barangay-search">Barangay</label><input id="barangay-search" name="barangay" autocomplete="off" maxlength="150" placeholder="Type your barangay" [ngModel]="draft.barangay_name" (ngModelChange)="barangayTyped($event)" (keydown.escape)="barangaySuggestions=[]" [attr.aria-controls]="barangaySuggestions.length?'barangay-suggestions':null">
+      @if(barangaySuggestions.length){<ul id="barangay-suggestions" class="suggestions" aria-label="Matching barangays">@for(place of barangaySuggestions;track place.code){<li><button type="button" (click)="selectBarangay(place)">{{place.name}}<ion-icon name="arrow-forward-outline"></ion-icon></button></li>}</ul>}
+      @if(addressMessage){<small role="status">{{addressMessage}}</small>}@else{<small>{{draft.city_code?'Suggestions are limited to your selected city or municipality.':'Select a city suggestion to find its barangays, or type one yourself.'}}</small>}
+      </div>
+      <label class="wide">House, street or building<input name="street" autocomplete="address-line1" maxlength="250" placeholder="Add only what you’re comfortable sharing" [(ngModel)]="draft.street_address"></label>
+      <label>Postal code<input name="postalCode" autocomplete="postal-code" inputmode="numeric" maxlength="4" placeholder="4 digits" [(ngModel)]="draft.postal_code"><small>Optional. Codes can vary within a city.</small></label>
+      @if(!draft.city_name && !draft.street_address && draft.address){<label class="wide">Previously saved address<textarea name="legacyAddress" rows="2" maxlength="1000" [(ngModel)]="draft.address"></textarea><small>Kept from your earlier profile. You can edit it or replace it using the fields above.</small></label>}
+     </div><p class="source-note">Place suggestions: PSGC Cloud, based on Philippine geographic records. Your typed street and house details stay in this form until you save.</p>
+    </section></fieldset>
+    <div class="save-actions"><button type="submit" class="primary" [disabled]="saving||processing||confirming||!dirty">{{saving?'Saving your profile…':'Save changes'}}<ion-icon name="checkmark-circle"></ion-icon></button><button type="button" class="secondary" (click)="cancel()" [disabled]="saving||processing||confirming">Cancel editing</button></div>
+   </form>
+  }
+  <section class="account-note"><ion-icon name="shield-checkmark-outline"></ion-icon><div><h2>Private to your account</h2><p>Your details and photo are saved securely in your account. They are not sent to emergency responders.</p><p class="email"><strong>Sign-in email</strong><br>{{email}}</p><small>Your email is managed through your sign-in account.</small></div></section>
+  }
+ </main>
+</ion-content>

@@ -62,6 +62,7 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
+        canDeactivate:[(page:import('./pages/profile/profile.page').ProfilePage)=>page.canLeave()],
         loadComponent: () =>
           import('./pages/profile/profile.page').then((m) => m.ProfilePage),
       },

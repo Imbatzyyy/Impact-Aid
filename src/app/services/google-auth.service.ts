@@ -24,14 +24,18 @@ export class GoogleAuthService {
   private async initialize(){
     if(!Capacitor.isNativePlatform())return;
     try{
-      await App.addListener('appUrlOpen',event=>{this.zone.run(()=>{void this.complete(event.url);});});
+      await App.addListener('appUrlOpen',event=>{this.zone.run(()=>{void this.incoming(event.url);});});
       await Browser.addListener('browserFinished',()=>this.zone.run(()=>{
         if(this.browserOpen&&!this.exchanging){this.browserOpen=false;this.busy=false;this.message='Google sign-in was closed. You can try again.';}
       }));
       this.listenerReady=true;
       const launch=await App.getLaunchUrl();
-      if(launch?.url)await this.complete(launch.url);
+      if(launch?.url)await this.incoming(launch.url);
     }catch{this.message='Google sign-in is unavailable right now. Please restart the app or use email.';}
+  }
+  private async incoming(url:string){
+    if(url==='io.impactaid.app://auth/login'){await this.router.navigateByUrl('/login',{replaceUrl:true});return;}
+    await this.complete(url);
   }
   async start(){
     if(this.busy)return;

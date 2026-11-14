@@ -2,6 +2,7 @@ import{RecoveryFlow,recoveryToken,passwordIssue}from'./recovery-client.js';
 let token=recoveryToken(location.hash);history.replaceState(null,'',location.pathname);
 const flow=new RecoveryFlow(),form=document.querySelector('form'),notice=document.querySelector('#notice'),password=document.querySelector('#password'),confirmation=document.querySelector('#confirmation'),button=document.querySelector('#save'),fields=document.querySelector('fieldset');
 const message=text=>{notice.textContent=text;notice.hidden=false;};
+if(window.top!==window.self){token=null;}
 if(!token){fields.disabled=true;message('Open the Reset password link from your email. If your link has expired, request another one in the app.');}
 form.addEventListener('submit',async event=>{
  event.preventDefault();if(button.disabled)return;
@@ -13,3 +14,6 @@ form.addEventListener('submit',async event=>{
 });
 document.querySelector('#show').addEventListener('change',event=>{password.type=confirmation.type=event.target.checked?'text':'password';});
 window.addEventListener('pagehide',()=>{token=null;flow.clear();password.value=confirmation.value='';});
+
+// A new email link can reuse an already-open browser tab with only a fragment change.
+window.addEventListener('hashchange',()=>location.reload());

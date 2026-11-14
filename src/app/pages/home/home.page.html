@@ -7,7 +7,7 @@
     <div *ngIf="loadError" class="status-message" role="alert">Your progress couldn't load. <button (click)="ionViewWillEnter()">Try again</button></div>
     <section class="welcome">
       <div><p class="eyebrow">Good day</p><h1 *ngIf="!loading; else loadingName">{{ userName ? userName + "." : "Welcome." }}</h1><ng-template #loadingName><ion-skeleton-text animated style="width:160px;height:32px"></ion-skeleton-text></ng-template><p>A little preparation goes a long way.</p></div>
-      <button class="avatar" aria-label="Your profile" (click)="goToProfile()">{{ userInitial || '•' }}</button>
+      <button class="avatar" aria-label="Your profile" (click)="goToProfile()">@if(profiles.photo()){<img [src]="profiles.photo()" alt="Your profile photo">}@else{ {{ userInitial || '•' }} }</button>
     </section>
     <button class="help-banner" (click)="navigateTo('sos')">
       <span class="help-icon"><ion-icon name="call-outline"></ion-icon></span><span><strong>Need help now?</strong><small>Emergency numbers &amp; saved contacts</small></span><ion-icon name="chevron-forward"></ion-icon>

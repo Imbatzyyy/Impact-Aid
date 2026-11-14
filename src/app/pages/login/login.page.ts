@@ -16,66 +16,37 @@ import { Router, RouterLink } from '@angular/router';
   imports: [CommonModule, FormsModule, IonButton, IonContent, IonIcon, IonInput, RouterLink],
 })
 export class LoginPage {
-  private currentMode: 'login'|'confirm'|'recovery'='login';
-  private recoveryEmail='';
-  private recoveryUserId='';
-  code='';newPassword='';notice='';
-  get mode(){return this.currentMode;}
-  set mode(value:'login'|'confirm'|'recovery'){
-    if(value!==this.currentMode){this.clearRecovery();this.code=this.newPassword='';}
-    this.currentMode=value;
-  }
-  get recoveryVerified(){
-    return this.mode==='recovery' && !!this.recoveryUserId && this.recoveryEmail===this.email.trim().toLowerCase();
-  }
-  private clearRecovery(){this.recoveryEmail=this.recoveryUserId='';}
+  mode:'login'|'confirm'|'recovery'='login';
+  code='';notice='';
+  openRecovery(){this.mode='recovery';this.code=this.password='';this.notice='';}
   async sendCode(mode:'confirm'|'recovery'){
+    if(mode==='recovery'){await this.sendResetLink();return;}
     if(this.loading||this.google.busy)return;
-    this.mode=mode;this.notice='';
+    this.mode='confirm';this.notice='';
     if(!this.email.trim()){this.notice='Enter your email first.';return;}
-    this.clearRecovery();this.code='';
-    this.loading=true;
-    try{
-      const {error}=mode==='confirm'?await db.auth.resend({type:'signup',email:this.email.trim()}):await db.auth.resetPasswordForEmail(this.email.trim());
-      if(error)throw error;
-      this.notice='Check your inbox and spam folder for the code.';
-    }catch(e){this.notice=e instanceof Error?e.message:'Could not send email.';}finally{this.loading=false;}
+    this.code='';this.loading=true;
+    try{const {error}=await db.auth.resend({type:'signup',email:this.email.trim()});if(error)throw error;this.notice='Check your inbox and spam folder for the confirmation code.';}
+    catch{this.notice='Could not send the confirmation email. Please wait a moment and try again.';}finally{this.loading=false;}
+  }
+  async sendResetLink(){
+    if(this.loading||this.google.busy)return;
+    const email=this.email.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){this.notice='Enter a valid email address.';return;}
+    this.loading=true;this.notice='';
+    try{const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:'https://imbatzyyy.github.io/Impact-Aid/reset-password.html'});if(error)throw error;
+      this.notice='If an account uses this email, a password reset link is on its way. Open the email and choose Reset password. Check your spam folder too.';
+    }catch{this.notice='The reset email could not be sent. Check your connection, wait a moment, and try again.';}finally{this.loading=false;}
   }
   async verify(){
-    if(this.loading||this.mode==='login')return;
-    const mode=this.mode,email=this.email.trim().toLowerCase();
-    if(!this.recoveryVerified){
-      this.clearRecovery();
-      if(!/^\d{6,10}$/.test(this.code.trim())){this.notice='Enter the code from your email.';return;}
-    }
-    if(this.mode==='recovery' && this.newPassword.length<6){this.notice='Enter a new password of at least 6 characters.';return;}
-    const password=this.newPassword;
+    if(this.loading||this.mode!=='confirm')return;
+    const email=this.email.trim().toLowerCase();
+    if(!/^\d{6,10}$/.test(this.code.trim())){this.notice='Enter the code from your email.';return;}
     this.loading=true;
-    try{
-      if(!this.recoveryVerified){
-        const {data,error}=await db.auth.verifyOtp({email,token:this.code.trim(),type:mode==='confirm'?'signup':'recovery'});
-        if(error)throw error;
-        if(this.mode!==mode || this.email.trim().toLowerCase()!==email)return;
-        if(!data.session)throw new Error('Could not start your session. Request a new code.');
-        this.code='';
-        if(mode==='recovery'){this.recoveryEmail=email;this.recoveryUserId=data.session.user.id;}
-      }
-      if(mode==='recovery'){
-        const {data,error}=await db.auth.getSession();
-        if(error)throw error;
-        if(this.mode!==mode || this.email.trim().toLowerCase()!==email)return;
-        if(!data.session || data.session.user.id!==this.recoveryUserId){
-          this.clearRecovery();
-          throw new Error('Your recovery session ended. Request a new code.');
-        }
-        const result=await db.auth.updateUser({password});if(result.error)throw result.error;
-      }
-      if(this.mode!==mode || this.email.trim().toLowerCase()!==email)return;
-      this.newPassword=this.password=this.code='';this.mode='login';this.notice='';await this.router.navigateByUrl('/home',{replaceUrl:true});
-    }catch(e){
-      const message=e instanceof Error?e.message:'Could not complete verification.';
-      this.notice=this.recoveryVerified ? 'Email verified. '+message+' Try saving your new password again; no new code is needed.' : message;
-    }finally{this.loading=false;}
+    try{const {data,error}=await db.auth.verifyOtp({email,token:this.code.trim(),type:'signup'});if(error)throw error;
+      if(this.mode!=='confirm'||this.email.trim().toLowerCase()!==email)return;
+      if(!data.session)throw Error('Could not start your session. Request a new code.');
+      this.password=this.code=this.notice='';this.mode='login';await this.router.navigateByUrl('/home',{replaceUrl:true});
+    }catch{this.notice='The confirmation code is invalid or expired. Check it or request a new code.';}finally{this.loading=false;}
   }
   ngOnInit(){this.ionViewWillEnter();}
   ionViewWillEnter(){const state=history.state;if(state?.verificationEmail){this.email=state.verificationEmail;this.mode='confirm';}}

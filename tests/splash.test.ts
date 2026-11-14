@@ -1,0 +1,16 @@
+import {beforeEach,afterEach,it,expect,vi}from'vitest';
+const m=vi.hoisted(()=>({session:vi.fn(),ready:vi.fn(),navigate:vi.fn(),hide:vi.fn()}));
+vi.mock('@angular/core',()=>({Component:()=>()=>{},ChangeDetectionStrategy:{Eager:0}}));
+vi.mock('@angular/router',()=>({Router:class{},RouterLink:class{}}));
+vi.mock('@ionic/angular',()=>({IonContent:class{}}));
+vi.mock('@capacitor/core',()=>({Capacitor:{isNativePlatform:()=>true}}));
+vi.mock('@capacitor/splash-screen',()=>({SplashScreen:{hide:m.hide}}));
+vi.mock('../src/app/services/backend',()=>({session:m.session}));
+vi.mock('../src/app/services/google-auth.service',()=>({GoogleAuthService:class{}}));
+import {SplashscreenPage}from'../src/app/pages/splashscreen/splashscreen.page';
+let page:SplashscreenPage;
+beforeEach(()=>{vi.useFakeTimers();vi.resetAllMocks();m.hide.mockResolvedValue(undefined);m.session.mockResolvedValue({user:{id:'a'}});page=new SplashscreenPage({navigateByUrl:m.navigate} as never,{ready:m.ready} as never);});
+afterEach(()=>{page.ngOnDestroy();vi.useRealTimers();});
+it('shows the pulse for five seconds and routes a signed-in user home',async()=>{await page.ionViewDidEnter();await vi.advanceTimersByTimeAsync(4649);expect(page.leaving).toBe(false);expect(m.navigate).not.toHaveBeenCalled();await vi.advanceTimersByTimeAsync(1);expect(page.leaving).toBe(true);await vi.advanceTimersByTimeAsync(350);expect(m.navigate).toHaveBeenCalledWith('/home',{replaceUrl:true});});
+it('routes a signed-out user to login after the same duration',async()=>{m.session.mockResolvedValue(null);await page.ionViewDidEnter();await vi.advanceTimersByTimeAsync(5000);expect(m.navigate).toHaveBeenCalledWith('/login',{replaceUrl:true});});
+it('does not interrupt emergency access or an OAuth callback that leaves the splash',async()=>{await page.ionViewDidEnter();await vi.advanceTimersByTimeAsync(1500);page.ionViewWillLeave();await vi.advanceTimersByTimeAsync(6000);expect(m.navigate).not.toHaveBeenCalled();});

@@ -1,17 +1,8 @@
-<ion-content fullscreen>
-  <div class="splash-container">
-    <!-- Logo with glow circles -->
-    <div class="logo-wrapper">
-      <div class="glow-ring ring-1"></div>
-      <div class="glow-ring ring-2"></div>
-      <img src="assets/logo.png" alt="Impact Aid Logo" class="logo" />
-    </div>
-
-    <!-- App title -->
-    <h1 class="app-title">IMPACT AID</h1>
-    <p class="subtitle">Philippine Disaster Preparedness</p>
-
-    <!-- Loading ring -->
-    <div class="loading-ring"></div>
-  </div>
+<ion-content class="splash-content">
+ <main class="splash" [class.leaving]="leaving">
+  <div class="splash-main"><div class="emblem"><span class="pulse pulse-one"></span><span class="pulse pulse-two"></span><div class="shield"><img src="assets/impact-shield.png" alt="Impact Aid"></div></div>
+  <p class="splash-eyebrow">Be informed. Be prepared.</p><h1>Impact Aid</h1><p class="tagline">A little preparation.<br>A safer tomorrow.</p>
+  <div class="loading-track" aria-hidden="true"><span></span></div><p class="loading-label" role="status">Getting things ready for you</p></div>
+  <footer><a routerLink="/emergency">Need emergency help now?</a><p>Philippine disaster preparedness</p></footer>
+ </main>
 </ion-content>

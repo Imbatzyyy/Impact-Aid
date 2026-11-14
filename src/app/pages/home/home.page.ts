@@ -1,3 +1,4 @@
+import { ProfileService } from '../../services/profile.service';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { db, session, account, progressData, topics } from '../../services/backend';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -47,12 +48,12 @@ export class HomePage  {
 
   loadError=false;
 
-  constructor(private router:Router){}
+  constructor(private router:Router,public profiles:ProfileService){}
   ngOnInit(){void this.ionViewWillEnter();}
   async ionViewWillEnter(){
-    this.loading=true; this.loadError=false; this.setRandomTip();
+    this.loading=true; this.loadError=false; this.userName='';this.userInitial=''; this.setRandomTip();
     try {
-      const d=await progressData();
+      const [d]=await Promise.all([progressData(),this.profiles.load().catch(()=>null)]);
       this.userName=d.username;this.userInitial=d.username.charAt(0).toUpperCase();
       this.lessonsCompleted=d.lessons.length;this.quizzesCompleted=d.scores.filter(n=>n>=60).length;
       this.lessonsPercent=Math.round(this.lessonsCompleted/6*100);this.quizPercent=Math.round(this.quizzesCompleted/6*100);

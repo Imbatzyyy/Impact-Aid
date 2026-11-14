@@ -4,7 +4,7 @@
 
 A Philippine disaster preparedness app for Android. Find a nearby response facility, read a field guide, or practice what to do before, during and after a disaster.
 
-**[Download the signed Android APK](https://github.com/Imbatzyyy/Impact-Aid/releases/download/v2.2.0/Impact-Aid-2.2.0.apk)** · [Installation and checksum](release/INSTALL.md) · [Release notes](https://github.com/Imbatzyyy/Impact-Aid/releases/tag/v2.2.0)
+**[Download the signed Android APK](https://github.com/Imbatzyyy/Impact-Aid/releases/download/v2.3.0/Impact-Aid-2.3.0.apk)** · [Installation and checksum](release/INSTALL.md) · [Release notes](https://github.com/Imbatzyyy/Impact-Aid/releases/tag/v2.3.0)
 
 | In the app | What you can do |
 | --- | --- |
@@ -12,6 +12,7 @@ A Philippine disaster preparedness app for Android. Find a nearby response facil
 | Places | Find hospitals, police, fire stations, rescue/DRRM teams, local government offices and mapped evacuation facilities. See the phone’s reported location accuracy and open a pin for its address, available contacts and source. |
 | Learn | Read six illustrated guides in sections or watch their bundled videos. Return to your saved section and explicitly mark a guide complete. |
 | Practice | Take 15 questions from each topic’s bank of 50. Both question and choice order shuffle. Leave and resume on the same installation. |
+| My Profile | Edit your name, username, optional age, mobile number and Philippine address; choose a private profile photo. |
 | My Progress | See completed guides, latest quiz scores, recent attempts, badges and a downloadable course certificate. |
 
 ## Inside the Android app
@@ -22,9 +23,17 @@ A Philippine disaster preparedness app for Android. Find a nearby response facil
 
 ## Sign in with Google
 
-Choose **Sign in with Google** or **Sign up with Google**. Supabase creates a new profile on the first visit and signs returning users into their existing account. Android opens the system browser and returns through a PKCE-protected callback. Email/password and verification codes remain available. [Configuration and testing notes](docs/GOOGLE-SIGN-IN.md).
+Choose **Sign in with Google** or **Sign up with Google**. Supabase creates a new profile on the first visit and signs returning users into their existing account. Android opens the system browser and returns through a PKCE-protected callback. Email/password and signup confirmation codes remain available. Forgot password sends an email link to the secure [reset website](https://imbatzyyy.github.io/Impact-Aid/reset-password.html). [Configuration and testing notes](docs/GOOGLE-SIGN-IN.md).
 
 [About Impact Aid](https://imbatzyyy.github.io/Impact-Aid/) · [Privacy information](https://imbatzyyy.github.io/Impact-Aid/privacy.html) · [Terms](https://imbatzyyy.github.io/Impact-Aid/terms.html)
+
+## Your profile and a calmer start
+
+The Impact Aid shield is the Android app icon. A five-second pulsing splash leads into Home (or sign-in for a signed-out user), with immediate access to emergency help. Tap your Home avatar for My Profile. Address fields offer suggestions as you type, and your chosen photo appears on Home after saving. Profile details and photos are private to your account. [Profile, address and recovery details](docs/PROFILE-AND-RECOVERY.md).
+
+| My Profile | A calmer welcome |
+| --- | --- |
+| <img src="docs/images/profile.png" alt="Private profile with a chosen photo, name and optional details" width="230"> | <img src="docs/images/splash.png" alt="The Impact Aid shield with gentle pulsing rings" width="230"> |
 
 ## How quiz releases work
 

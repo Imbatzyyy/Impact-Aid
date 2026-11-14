@@ -69,7 +69,7 @@ function recoveryPage() {
   page.mode = 'recovery';
   page.email = syntheticSession.user.email;
   page.code = '12345678';
-  page.newPassword = 'synthetic-test-password';
+
   return { page, router };
 }
 
@@ -101,106 +101,22 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('password recovery', () => {
-  it('retries only the password update after OTP verification succeeds', async () => {
-    const { page, router } = recoveryPage();
-    mocks.updateUser.mockResolvedValueOnce({ error: new Error('Password update rejected') });
-    await page.verify();
-    expect(page.recoveryVerified).toBe(true);
-    expect(page.code).toBe('');
-    expect(page.notice).toContain('no new code is needed');
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
-    page.newPassword = 'synthetic-corrected-password';
-    await page.verify();
-    expect(mocks.verifyOtp).toHaveBeenCalledTimes(1);
-    expect(mocks.updateUser).toHaveBeenLastCalledWith({ password: 'synthetic-corrected-password' });
-    expect(page.newPassword).toBe('');
-    expect(page.recoveryVerified).toBe(false);
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/home', { replaceUrl: true });
+describe('email-link password recovery', () => {
+  it('requests a hosted reset link using only the email', async () => {
+    const {page}=recoveryPage();await page.sendResetLink();
+    expect(mocks.resetPasswordForEmail).toHaveBeenCalledWith(syntheticSession.user.email,{redirectTo:'https://imbatzyyy.github.io/Impact-Aid/reset-password.html'});
+    expect(mocks.updateUser).not.toHaveBeenCalled();expect(mocks.verifyOtp).not.toHaveBeenCalled();expect(page.notice).toContain('If an account uses this email');
   });
-
-  it('keeps verification available after a temporary session-read failure', async () => {
-    const { page } = recoveryPage();
-    mocks.getSession.mockResolvedValueOnce({ data: { session: null }, error: new Error('Offline') });
-    await page.verify();
-    expect(mocks.updateUser).not.toHaveBeenCalled();
-    await page.verify();
-    expect(mocks.verifyOtp).toHaveBeenCalledTimes(1);
-    expect(mocks.updateUser).toHaveBeenCalledTimes(1);
+  it('requires a valid email and prevents duplicate reset requests', async () => {
+    const {page}=recoveryPage();page.email='invalid';await page.sendResetLink();expect(mocks.resetPasswordForEmail).not.toHaveBeenCalled();
+    page.email=syntheticSession.user.email;const pending=deferred<unknown>();mocks.resetPasswordForEmail.mockReturnValue(pending.promise);const first=page.sendResetLink();await page.sendResetLink();expect(mocks.resetPasswordForEmail).toHaveBeenCalledTimes(1);pending.resolve({error:null});await first;
   });
-
-  it.each([null, { user: { id: 'synthetic-user-b' } }])('rejects a retry when the verified session is missing or replaced: %j', async session => {
-    const { page, router } = recoveryPage();
-    mocks.updateUser.mockResolvedValueOnce({ error: new Error('Offline') });
-    await page.verify();
-    mocks.getSession.mockResolvedValue({ data: { session }, error: null });
-    await page.verify();
-    expect(page.recoveryVerified).toBe(false);
-    expect(page.notice).toContain('Request a new code');
-    expect(mocks.updateUser).toHaveBeenCalledTimes(1);
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  it('recovers from delivery failures without accepting a password in the app',async()=>{
+    const {page}=recoveryPage();mocks.resetPasswordForEmail.mockResolvedValue({error:Error('rate limit')});await page.sendResetLink();expect(page.loading).toBe(false);expect(page.notice).toContain('could not be sent');await page.verify();expect(mocks.verifyOtp).not.toHaveBeenCalled();
   });
-
-  it('requires a new code if the email changes after a failed update', async () => {
-    const { page } = recoveryPage();
-    mocks.updateUser.mockResolvedValueOnce({ error: new Error('Offline') });
-    await page.verify();
-    page.email = 'other-synthetic@example.invalid';
-    await page.verify();
-    expect(page.recoveryVerified).toBe(false);
-    expect(mocks.verifyOtp).toHaveBeenCalledTimes(1);
-    expect(mocks.updateUser).toHaveBeenCalledTimes(1);
-    expect(page.notice).toBe('Enter the code from your email.');
-  });
-
-  it('clears recovery state through the existing Back to sign in binding', async () => {
-    const { page } = recoveryPage();
-    mocks.updateUser.mockResolvedValueOnce({ error: new Error('Offline') });
-    await page.verify();
-    page.mode = 'login';
-    expect(page.newPassword).toBe('');
-    page.mode = 'recovery';
-    expect(page.recoveryVerified).toBe(false);
-  });
-
-  it('starts a fresh verification when another recovery code is requested', async () => {
-    const { page } = recoveryPage();
-    mocks.updateUser.mockResolvedValueOnce({ error: new Error('Offline') });
-    await page.verify();
-    await page.sendCode('recovery');
-    expect(page.recoveryVerified).toBe(false);
-    expect(mocks.resetPasswordForEmail).toHaveBeenCalledWith(syntheticSession.user.email);
-  });
-
-  it('does not change a password if the email changes while verification is pending', async () => {
-    const { page, router } = recoveryPage();
-    const pending = deferred<unknown>();
-    mocks.verifyOtp.mockReturnValue(pending.promise);
-    const attempt = page.verify();
-    page.email = 'other-synthetic@example.invalid';
-    pending.resolve({ data: { session: syntheticSession }, error: null });
-    await attempt;
-    expect(mocks.updateUser).not.toHaveBeenCalled();
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
-  });
-
-  it('does not retain verification after an invalid code', async () => {
-    const { page } = recoveryPage();
-    mocks.verifyOtp.mockResolvedValue({ data: { session: null }, error: new Error('Invalid code') });
-    await page.verify();
-    expect(page.recoveryVerified).toBe(false);
-    expect(mocks.updateUser).not.toHaveBeenCalled();
-    expect(page.loading).toBe(false);
-  });
-
   it('preserves signup confirmation without attempting a password change', async () => {
-    const { page, router } = recoveryPage();
-    page.mode = 'confirm';
-    page.code = '12345678';
-    await page.verify();
-    expect(mocks.verifyOtp).toHaveBeenCalledWith({ email: syntheticSession.user.email, token: '12345678', type: 'signup' });
-    expect(mocks.updateUser).not.toHaveBeenCalled();
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/home', { replaceUrl: true });
+    const {page,router}=recoveryPage();page.mode='confirm';await page.verify();
+    expect(mocks.verifyOtp).toHaveBeenCalledWith({email:syntheticSession.user.email,token:'12345678',type:'signup'});expect(mocks.updateUser).not.toHaveBeenCalled();expect(router.navigateByUrl).toHaveBeenCalledWith('/home',{replaceUrl:true});
   });
 });
 
