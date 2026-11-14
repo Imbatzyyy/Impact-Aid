@@ -1,0 +1,8 @@
+<ion-header><ion-toolbar><ion-title>My profile</ion-title></ion-toolbar></ion-header>
+<ion-content><form class="page-body p-6 space-y-5" (ngSubmit)="save()">
+<p class="text-slate-600">{{email}}</p>
+<label class="block">Display name<input class="block border rounded-xl p-3 w-full" required maxlength="150" name="username" [(ngModel)]="username"></label>
+<label class="block">Address (optional)<input class="block border rounded-xl p-3 w-full" maxlength="500" name="address" [(ngModel)]="address"></label>
+<button type="submit" class="profile-save" [disabled]="!ready || !username.trim()">Save profile</button>
+<p role="status">{{message}}</p><button *ngIf="!ready && message" type="button" (click)="ionViewWillEnter()">Retry</button>
+</form></ion-content>

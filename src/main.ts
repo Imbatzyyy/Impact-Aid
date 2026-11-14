@@ -1,0 +1,10 @@
+import { provideZoneChangeDetection } from '@angular/core';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { RouteReuseStrategy, provideRouter } from '@angular/router';
+import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
+import { AppComponent } from './app/app.component';
+import { routes } from './app/app.routes';
+import { addIcons } from 'ionicons';
+import { appIcons } from './app/icons';
+addIcons(appIcons);
+bootstrapApplication(AppComponent,{providers:[provideZoneChangeDetection(),{provide:RouteReuseStrategy,useClass:IonicRouteStrategy},provideIonicAngular(),provideRouter(routes)]}).catch(console.error);

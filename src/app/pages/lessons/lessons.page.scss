@@ -1,0 +1,215 @@
+
+ion-content {
+  --background: #f9fafb;
+  overflow-y: auto !important;
+  font-family: var(--ion-font-family);
+}
+
+button, ion-button {
+  font-family: var(--ion-font-family);
+}
+
+/* LESSON CARD STYLE */
+.lesson-card {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  background: var(--card-bg, #fff);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Gradient border layer */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 2px; /* border thickness */
+    border-radius: 24px;
+    background: var(--border-gradient, linear-gradient(135deg, #3b82f6, #06b6d4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Icon Box Gradient Styling */
+.icon-bubble {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  background-size: 150%;
+  transition: background-position 0.4s ease, transform 0.2s ease;
+}
+
+.icon-bubble:hover {
+  background-position: right center;
+  transform: scale(1.1);
+}
+
+/* Hover arrow animation */
+.lesson-card-hover ion-icon[name="arrow-forward-outline"] {
+  transition: opacity 160ms ease, transform 160ms ease;
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+.lesson-card-hover:hover ion-icon[name="arrow-forward-outline"] {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Slide-up animation for modal */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.35s ease-out;
+}
+
+/* Fade-in animation for popup */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Scale-up animation for popup content */
+@keyframes scale-up {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-up {
+  animation: scale-up 0.3s ease-out;
+}
+
+/* Header shape */
+.bg-linear-to-br {
+  border-radius: 0 0 20px 20px;
+}
+
+/* Ensure lesson list scrolls smoothly */
+.min-h-full {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make modal content scroll independently */
+.flex-1.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.flex-1.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+
+/* Lesson content styling */
+.lesson-content {
+  padding-bottom: 80px; /* Extra space at bottom for comfortable scrolling */
+}
+
+.lesson-html {
+  img, video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .video-container, .image-container {
+    width: 100%;
+    margin: 0.5rem 0 1rem 0;
+    
+    video, img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      margin: 0;
+    }
+  }
+
+  ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  h3, h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 0.75rem;
+  }
+
+  .space-y-2 > * + *,
+  .space-y-3 > * + *,
+  .space-y-4 > * + * {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Responsive tweaks */
+@media (max-width: 420px) {
+  .w-16.h-16 {
+    width: 56px;
+    height: 56px;
+  }
+  .text-3xl {
+    font-size: 1.4rem;
+  }
+  .text-5xl {
+    font-size: 2.5rem;
+  }
+}
+
+ion-content {
+  --padding-bottom: calc(90px + env(safe-area-inset-bottom));
+}.lesson-card { border:1px solid #d7e2e2; border-radius:12px; box-shadow:none; }
+.lesson-card::before { display:none; }
+.lesson-card:hover { transform:none; box-shadow:none; border-color:#7fa99d; }
+.icon-bubble { width:48px; height:48px; border-radius:10px; box-shadow:none; }
+.icon-bubble ion-icon { color:#2d7063 !important; font-size:25px; }
+.icon-bubble:hover { transform:none; }
+.lesson-grid { align-content:start; }
+.lesson-grid h3 { font-size:18px; margin-top:0; }
+ion-content { --padding-bottom:20px; }
+@media(min-width:720px) { .lesson-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

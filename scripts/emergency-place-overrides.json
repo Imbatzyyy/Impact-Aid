@@ -1,0 +1,24 @@
+{
+  "osm-way-260405236": {
+    "name": "Quezon City Disaster Risk Reduction and Management Office (QCDRRMO)",
+    "phone": "+63289284396",
+    "phoneSource": "https://quezoncity.gov.ph/departments/quezon-city-disaster-and-risk-reduction-management-office/",
+    "address": "DRRM Building, Quezon City Hall Compound, Kalayaan Avenue, Diliman, Quezon City"
+  },
+  "osm-way-25784138": {
+    "phone": "+63289884242",
+    "phoneSource": "https://quezoncity.gov.ph/quezon-city-government-directory/"
+  },
+  "osm-relation-14582129": {
+    "phone": "+63288630800",
+    "phoneSource": "https://quezoncity.gov.ph/quezon-city-government-directory/"
+  },
+  "osm-relation-17896272": {
+    "phone": "+63289310307",
+    "phoneSource": "https://quezoncity.gov.ph/quezon-city-government-directory/"
+  },
+  "osm-way-784554612": {
+    "phone": "+63288352560",
+    "phoneSource": "https://quezoncity.gov.ph/quezon-city-government-directory/"
+  }
+}

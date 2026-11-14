@@ -1,0 +1,22 @@
+ion-content { --background:#f5f7f8; }
+.help-shell { max-width:820px; margin:0 auto; padding:28px 22px 40px; color:#173d49; }
+.back-link{display:flex;align-items:center;gap:8px;min-height:44px;font-size:14px;color:#286459;margin-bottom:16px;text-decoration:none}
+.help-heading .eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#647781;margin:0 0 8px}
+.help-heading h1{font-size:34px;font-weight:700;margin:0 0 8px}.help-heading>p:last-child{font-size:14px;line-height:1.5;color:#526976;margin:0}
+.emergency-primary{margin:24px 0;background:#fff;border:1px solid #e7cbc8;border-top:4px solid #ad332b;border-radius:12px;padding:22px}
+.emergency-primary h2{font-size:19px;font-weight:650;margin:5px 0 18px}.emergency-primary>div p{font-size:12px;color:#78615f;margin:0}
+.emergency-primary>button{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;min-height:68px;background:#ad332b;color:white;border-radius:10px;font-size:22px}
+.emergency-primary>button ion-icon{font-size:25px}.emergency-primary strong{font-size:30px;font-weight:700}
+.dialer-note{font-size:12px;line-height:1.6;margin:13px 0 0;color:#626f75}
+.help-tabs{display:flex;border-bottom:1px solid #cddbdd;margin-bottom:4px;gap:10px}.help-tabs button{flex:1;min-height:52px;background:transparent;color:#526976;border-bottom:3px solid transparent;font-weight:600;font-size:14px}
+.help-tabs button[aria-pressed="true"]{color:#176154;border-color:#176154}
+.hotline{display:flex;align-items:center;gap:16px;padding:22px 2px;border-bottom:1px solid #dce4e7}.hotline>div:first-child{flex:1;min-width:0}
+.hotline h2{font-size:16px;font-weight:650;margin:0 0 5px;line-height:1.4}.hotline p{font-size:12px;color:#526976;line-height:1.5;margin:0 0 7px}
+.hotline strong{font-size:18px;font-weight:600;color:#294f58;letter-spacing:.02em}.hotline button{display:flex;align-items:center;justify-content:center;gap:7px;background:#e6efec;color:#175d50;min-width:72px;min-height:46px;border-radius:9px;font-size:14px;font-weight:600}
+.hotline button ion-icon{font-size:19px}.contact-actions{display:flex;gap:8px;flex-wrap:wrap;max-width:130px}.hotline .remove-contact{min-width:44px;background:transparent;color:#667982}
+.add-contact{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #a9c3bc;background:white;color:#1d6255;border-radius:10px;width:100%;min-height:52px;margin-top:18px;font-weight:600}
+.call-guidance{margin-top:28px;padding:20px;background:#edf2f1;border-radius:10px}.call-guidance h2{font-size:14px;font-weight:650;margin:0 0 8px}.call-guidance p{font-size:13px;line-height:1.6;color:#526976;margin:0}.call-guidance .quiet{font-size:12px;margin-top:12px}
+.empty-contacts{padding:28px 4px;text-align:center}.empty-contacts h2{font-size:18px}.empty-contacts p{font-size:14px;color:#526976;line-height:1.6}.text-action{display:inline-flex;min-height:44px;align-items:center;color:#176154;font-weight:600}.empty-contacts>ion-icon{font-size:28px}
+@media(min-width:700px){.help-shell{padding:32px 40px}.emergency-primary{padding:26px}}
+
+.places-link{display:flex;align-items:center;gap:12px;min-height:76px;padding:14px 16px;margin:16px 0;border:1px solid #c9dcd5;background:#eaf3ef;color:#215d50;border-radius:14px;text-decoration:none;font-size:14px;font-weight:650;}.places-link>ion-icon{font-size:23px;flex-shrink:0;}.places-link>span{flex:1;}.places-link small{display:block;font-size:11px;font-weight:400;margin-top:5px;line-height:1.5;}

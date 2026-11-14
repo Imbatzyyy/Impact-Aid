@@ -1,0 +1,246 @@
+<ion-content [fullscreen]="true" class="bg-gray-50 font-poppins overflow-y-auto">
+
+  <!-- ✅ Top Header (Quiz Selection) -->
+  <div
+    *ngIf="activeDisaster === null"
+    class="page-heading bg-linear-to-r from-purple-500 to-pink-400 text-white p-8 rounded-b-3xl shadow-md"
+  >
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 bg-white/25 rounded-2xl flex items-center justify-center shadow-sm">  
+        <ion-icon name="bulb-outline" class="text-3xl text-white"></ion-icon>
+      </div>
+      <div>
+        <h1 class="text-3xl font-bold">Disaster Quizzes</h1>
+        <p class="text-sm text-white/90">Test your knowledge per disaster</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Quiz Selection -->
+  <div *ngIf="activeDisaster === null" class="page-body quiz-list px-6 mt-6 space-y-4 pb-12">
+    <p class="text-gray-700 font-medium text-sm">
+      Select a disaster to take its dedicated quiz:
+    </p>
+
+    <div
+      *ngFor="let quiz of quizData"
+      class="quiz-choice"
+      (click)="initializeQuiz(quiz.id)" role="button" tabindex="0" (keydown.enter)="initializeQuiz(quiz.id)" (keydown.space)="$event.preventDefault(); initializeQuiz(quiz.id)"
+    >
+      <div class="flex items-center gap-4">
+        <ion-icon class="quiz-topic-icon" name="book-outline"></ion-icon>
+        <div>
+          <h3 class="text-lg font-semibold">{{ quiz.name }} Quiz</h3>
+          <p class="text-sm opacity-90">10 questions</p>
+        </div>
+      </div>
+      <ion-icon name="arrow-forward-outline" class="text-2xl text-white"></ion-icon>
+    </div>
+  </div>
+
+  <!-- ✅ Quiz Taking Screen -->
+  <div *ngIf="activeDisaster !== null && !showResults && currentQuiz" class="page-body quiz-taking flex flex-col min-h-full">
+    <div
+      class="px-6 py-6 flex items-center gap-3 text-white sticky top-0 z-20"
+      [ngStyle]="{ 'background': getGradient(currentQuiz.bg) }"
+    >
+      <button
+        class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 border-none flex-shrink-0"
+        (click)="backToSelection()"
+      >
+        <ion-icon name="arrow-back-outline" class="text-xl text-white"></ion-icon>
+      </button>
+      <div class="flex items-center gap-3 flex-1">
+        <div class="text-4xl">{{ currentQuiz.emoji }}</div>
+        <div>
+          <h2 class="text-2xl font-bold">{{ currentQuiz.name }}</h2>
+          <p>Question {{ currentQuestion + 1 }} of {{ currentQuiz.questions.length || 0 }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="bg-white px-6 py-6 flex items-center gap-4 shadow-sm sticky top-[88px] z-10">
+      <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          class="h-full rounded-full transition-all duration-300"
+          [ngStyle]="{ 'background': getGradient(currentQuiz.bg), 'width.%': progress }"
+        ></div>
+      </div>
+      <span class="font-semibold text-lg min-w-12 text-right text-gray-700">
+        {{ progress | number: '1.0-0' }}%
+      </span>
+    </div>
+
+    <!-- Question -->
+    <div class="flex-1 p-6 overflow-y-auto">
+      <div class="quiz-question bg-white rounded-2xl p-6 border border-gray-200">
+        <div class="text-sm font-semibold uppercase tracking-wide mb-3"
+             [ngStyle]="{ 'color': getGradient(currentQuiz.bg) }">
+          Question {{ currentQuestion + 1 }}
+        </div>
+
+        <h3 class="text-xl font-semibold text-gray-900 mb-6 leading-relaxed">
+          {{ currentQuiz.questions[currentQuestion].question }}
+        </h3>
+
+        <div class="flex flex-col gap-3 mb-8">
+          <div
+            *ngFor="let option of currentQuiz.questions[currentQuestion].options || []; let i = index"
+            class="flex items-center gap-4 p-5 bg-gray-50 border-2 rounded-2xl transition-all active:scale-98 cursor-pointer"
+            [class.bg-purple-50]="selectedAnswers[currentQuestion] === i"
+            [class.border-purple-500]="selectedAnswers[currentQuestion] === i"
+            [class.border-gray-100]="selectedAnswers[currentQuestion] !== i"
+            (click)="selectAnswer(i)" role="radio" tabindex="0" [attr.aria-checked]="selectedAnswers[currentQuestion] === i" (keydown.enter)="selectAnswer(i)" (keydown.space)="$event.preventDefault(); selectAnswer(i)"
+          >
+            <div
+              class="w-6 h-6 border-2 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+              [class.border-purple-500]="selectedAnswers[currentQuestion] === i"
+              [class.border-gray-600]="selectedAnswers[currentQuestion] !== i"
+            >
+              <div *ngIf="selectedAnswers[currentQuestion] === i" class="w-3 h-3 bg-purple-500 rounded-full"></div>
+            </div>
+            <span class="flex-1 text-gray-900">{{ option }}</span>
+          </div>
+        </div>
+
+        <!-- Nav Buttons -->
+        <div class="flex gap-3 pb-6 sticky bottom-0 bg-white pt-4">
+          <ion-button *ngIf="currentQuestion > 0" fill="outline"
+                      class="flex-1 h-12 rounded-xl font-semibold normal-case"
+                      style="--border-color: #8b5cf6; --color: #8b5cf6"
+                      (click)="previousQuestion()">
+            <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+            Previous
+          </ion-button>
+
+          <div *ngIf="currentQuestion === 0" class="flex-1"></div>
+
+          <ion-button *ngIf="currentQuestion < (currentQuiz.questions.length || 0) - 1"
+                      class="flex-1 h-12 rounded-xl font-semibold normal-case"
+                      [ngStyle]="{ '--background': getGradient(currentQuiz.bg) }"
+                      (click)="nextQuestion()"
+                      [disabled]="selectedAnswers[currentQuestion] === -1">
+            Next
+            <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button *ngIf="currentQuestion === (currentQuiz.questions.length || 0) - 1"
+                      class="flex-1 h-12 rounded-xl font-semibold normal-case"
+                      [ngStyle]="{ '--background': getGradient(currentQuiz.bg) }"
+                      (click)="submitQuiz()"
+                      [disabled]="isSubmitting || selectedAnswers.includes(-1)">
+            <ion-spinner name="circular" *ngIf="isSubmitting"></ion-spinner>
+            <span *ngIf="!isSubmitting">Submit Quiz</span>
+            <span *ngIf="isSubmitting">Submitting...</span>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Results Screen -->
+  <div *ngIf="showResults && currentQuiz" class="min-h-screen bg-gray-50 flex flex-col">
+    <!-- Header -->
+    <div class="px-6 py-6 text-white rounded-b-3xl shadow-md"
+         [ngStyle]="{ 'background': getGradient(currentQuiz.bg) }">
+      <button class="flex items-center gap-2 text-white/90 font-medium mb-3"
+              (click)="backToSelection()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Back to quiz selection
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="text-4xl">{{ currentQuiz.emoji }}</div>
+        <div>
+          <h2 class="text-2xl font-bold">{{ currentQuiz.name }} Quiz</h2>
+          <p class="text-white/90 text-sm">Test your preparedness knowledge</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="px-6 mt-8 relative z-10">
+      <div class="bg-white rounded-3xl p-8 shadow-md text-center">
+        <div class="flex justify-center mb-4">
+          <div class="w-16 h-16 rounded-full flex items-center justify-center"
+               [ngClass]="getBadgeContainerClass()">
+            <ion-icon [name]="getBadgeIcon()" class="text-3xl" [ngClass]="getBadgeIconClass()"></ion-icon>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold mb-1 text-gray-800">{{ getBadgeTitle() }}</h3>
+        <p class="text-gray-600 mb-6">
+          {{ getBadgeMessage() }}
+        </p>
+
+        <!-- ✅ Badge Display -->
+        <div *ngIf="earnedBadge" class="mt-2 mb-4">
+          <div class="text-5xl">{{ earnedBadge.emoji }}</div>
+          <p class="text-gray-700 font-medium">{{ earnedBadge.name }}</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-6 mb-6">
+          <p class="text-gray-600 text-sm mb-1">Your Score</p>
+          <h2 class="text-5xl font-bold text-gray-900">{{ calculateScore() }}%</h2>
+          <p class="text-gray-500 mt-1">
+            {{ getCorrectCount() }} out of {{ currentQuiz.questions.length || 0 }} correct
+          </p>
+        </div>
+
+        <div class="flex justify-center gap-3">
+          <button (click)="retryQuiz()"
+                  class="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white"
+                  [ngStyle]="{ 'background': getGradient(currentQuiz.bg) }">
+            <ion-icon name="refresh-outline"></ion-icon>
+            Retake Quiz
+          </button>
+
+          <button (click)="backToSelection()"
+                  class="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold border border-gray-300 text-gray-700 bg-white">
+            Other Quizzes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Section -->
+    <div class="px-6 mt-6 pb-20">
+      <h4 class="font-semibold text-gray-800 mb-3">Review Your Answers</h4>
+      <div *ngFor="let q of currentQuiz.questions; let i = index"
+           class="mb-3 p-4 rounded-2xl border transition-all"
+           [ngClass]="{
+             'border-green-400 bg-green-50': isAnswerCorrect(i, selectedAnswers[i]),
+             'border-red-400 bg-red-50': isAnswerWrong(i, selectedAnswers[i]),
+             'border-gray-200 bg-white': !isAnswerCorrect(i, selectedAnswers[i]) && !isAnswerWrong(i, selectedAnswers[i])
+           }">
+        <div class="flex items-start gap-2 mb-2">
+          <ion-icon *ngIf="isAnswerCorrect(i, selectedAnswers[i])"
+                    name="checkmark-circle"
+                    class="text-green-500 text-xl flex-shrink-0 mt-0.5"></ion-icon>
+          <ion-icon *ngIf="isAnswerWrong(i, selectedAnswers[i])"
+                    name="close-circle"
+                    class="text-red-500 text-xl flex-shrink-0 mt-0.5"></ion-icon>
+          <p class="font-medium text-gray-800 flex-1">{{ q.question }}</p>
+        </div>
+        <div class="pl-7">
+          <p class="text-sm text-gray-600 mb-1">
+            <span class="font-semibold">Your answer:</span>
+            <span [ngClass]="{
+              'text-green-600 font-medium': isAnswerCorrect(i, selectedAnswers[i]),
+              'text-red-600 font-medium': isAnswerWrong(i, selectedAnswers[i])
+            }">
+              {{ q.options[selectedAnswers[i]] }}
+            </span>
+          </p>
+          <p *ngIf="isAnswerCorrect(i, selectedAnswers[i])" class="text-sm text-green-600 font-medium">
+            ✓ Correct!
+          </p>
+          <p *ngIf="isAnswerWrong(i, selectedAnswers[i])" class="text-sm text-red-600 font-medium">
+            ✗ Incorrect
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

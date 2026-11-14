@@ -1,0 +1,7 @@
+{
+  "name": "impact-aid",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

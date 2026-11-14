@@ -1,0 +1,34 @@
+<ion-content class="home-content">
+  <main class="home-shell">
+    <header class="home-brand">
+      <div class="brand"><img src="assets/logo.png" alt="" /><span>Impact Aid<small>Philippine disaster preparedness</small></span></div>
+      <button class="icon-button" aria-label="Settings" (click)="navigateTo('settings')"><ion-icon name="settings-outline"></ion-icon></button>
+    </header>
+    <div *ngIf="loadError" class="status-message" role="alert">Your progress couldn't load. <button (click)="ionViewWillEnter()">Try again</button></div>
+    <section class="welcome">
+      <div><p class="eyebrow">Good day</p><h1 *ngIf="!loading; else loadingName">{{ userName ? userName + "." : "Welcome." }}</h1><ng-template #loadingName><ion-skeleton-text animated style="width:160px;height:32px"></ion-skeleton-text></ng-template><p>A little preparation goes a long way.</p></div>
+      <button class="avatar" aria-label="Your profile" (click)="goToProfile()">{{ userInitial || '•' }}</button>
+    </section>
+    <button class="help-banner" (click)="navigateTo('sos')">
+      <span class="help-icon"><ion-icon name="call-outline"></ion-icon></span><span><strong>Need help now?</strong><small>Emergency numbers &amp; saved contacts</small></span><ion-icon name="chevron-forward"></ion-icon>
+    </button>
+    <section class="learning-summary" aria-label="Your learning progress">
+      <div class="section-line"><p class="eyebrow">Your learning</p><button (click)="navigateTo('progress')">View progress <ion-icon name="arrow-forward-outline"></ion-icon></button></div>
+      <div class="progress-title"><h2>Build your confidence.</h2><strong *ngIf="!loading && !loadError">{{ overallProgress }}<span>%</span></strong></div>
+      <div *ngIf="!loading && !loadError" class="progress-track" role="progressbar" aria-label="Course completion" [attr.aria-valuenow]="overallProgress" aria-valuemin="0" aria-valuemax="100"><span [style.width.%]="overallProgress"></span></div>
+      <p *ngIf="!loading && !loadError">{{ lessonsCompleted }} of {{ totalLessons }} lessons completed <span>·</span> {{ quizzesCompleted }} of {{ totalQuizzes }} quizzes passed</p>
+      <p *ngIf="loading" role="status">Loading your saved progress…</p>
+      <p *ngIf="loadError">Connect to the internet and try again to view your saved progress.</p>
+    </section>
+    <section class="next-section">
+      <h2>One step at a time</h2>
+      <div class="action-list">
+        <button (click)="navigateTo('lessons')"><span class="action-icon"><ion-icon name="book-outline"></ion-icon></span><span><strong>Explore the lessons</strong><small>Practical guides for six types of disaster</small></span><ion-icon name="chevron-forward"></ion-icon></button>
+        <button (click)="navigateTo('quiz')"><span class="action-icon"><ion-icon name="bulb-outline"></ion-icon></span><span><strong>Check what you know</strong><small>Short quizzes, at your own pace</small></span><ion-icon name="chevron-forward"></ion-icon></button>
+        <button (click)="navigateTo('map')"><span class="action-icon"><ion-icon name="map-outline"></ion-icon></span><span><strong>Find emergency places</strong><small>Hospitals and police facilities in Quezon City</small></span><ion-icon name="chevron-forward"></ion-icon></button>
+      </div>
+    </section>
+    <aside class="daily-note"><ion-icon name="shield-checkmark-outline"></ion-icon><div><h2>A small step for today</h2><p>{{ randomTip }}</p></div></aside>
+    <p class="home-footnote">Learn ahead. Make a plan. Look out for each other.</p>
+  </main>
+</ion-content>

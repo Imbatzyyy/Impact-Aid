@@ -1,0 +1,50 @@
+<ion-content>
+  <header class="page-heading places-heading">
+    <a class="emergency-link" [routerLink]="publicMode ? '/emergency' : '/sos'"><ion-icon name="arrow-back-outline"></ion-icon>Emergency numbers</a>
+    <p class="eyebrow">FIND LOCAL HELP</p>
+    <h1>Emergency places</h1>
+    <p>Find response teams, care and community support.</p>
+    <label class="search-field"><ion-icon name="search"></ion-icon><input type="search" aria-label="Search emergency places" placeholder="Facility, barangay or city" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" /></label>
+  </header>
+
+  <section class="page-body location-panel">
+    <div class="location-controls">
+      <button class="location-button" (click)="getUserLocation()" [disabled]="locationBusy" [attr.aria-busy]="locationBusy"><ion-spinner *ngIf="locationBusy" name="crescent"></ion-spinner><ion-icon *ngIf="!locationBusy" name="navigate"></ion-icon>{{locationBusy ? 'Getting location…' : userCoords ? 'Refresh & center' : 'Use my location'}}</button>
+      <label class="radius-control">Search range<select aria-label="Search range" [(ngModel)]="radiusKm" (ngModelChange)="refreshResults()"><option [ngValue]="10">10 km</option><option [ngValue]="25">25 km</option><option [ngValue]="50">50 km</option><option [ngValue]="0">All Philippines</option></select></label>
+    </div>
+    <p class="search-area">{{radiusKm ? 'Around ' + browseLabel : 'Philippine directory'}} · {{locations.length | number}} saved places</p>
+    <div class="location-status" role="status" aria-live="polite" aria-atomic="true">
+      <p>{{locationStatus}}</p>
+      <p *ngIf="locationUpdatedAt !== null" class="location-detail">Accuracy radius: {{accuracyMeters}} m · Updated {{locationUpdatedAt | date:'mediumTime'}}</p>
+      <p *ngIf="userCoords" class="location-coordinates">Latitude {{userCoords.lat | number:'1.6-6'}} · Longitude {{userCoords.lng | number:'1.6-6'}}</p>
+    </div>
+    <div *ngIf="locationError" class="location-error" role="alert"><p>{{locationError}}</p><button (click)="getUserLocation()" [disabled]="locationBusy">Retry location</button></div>
+    <details class="location-help"><summary>About location & directory coverage</summary><p>Device estimates may be approximate. The blue circle shows reported uncertainty. Updates stop when you leave this page or hide the app.</p><p>Saved Philippine map records are available without internet. Coverage and contact details can be incomplete or outdated. Map tiles and directions require internet; this app does not dispatch responders.</p><p>Directory snapshot: {{directoryUpdatedAt | date:'mediumDate'}}. <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors · ODbL</a>. <a href="assets/data/emergency-places.json" target="_blank" rel="noopener">Download directory data</a>.</p></details>
+  </section>
+
+  <nav class="page-body category-filters" aria-label="Facility category"><button *ngFor="let category of placeCategories" (click)="onFilterChange(category.id)" [attr.aria-pressed]="selectedType===category.id" [class.active]="selectedType===category.id" [style.--category-color]="category.color"><ion-icon [name]="category.icon"></ion-icon>{{category.name}}<span class="marker-key" aria-hidden="true">{{category.mark}}</span></button></nav>
+
+  <div class="map-panel">
+    <div #mapElement class="map-canvas" [hidden]="mapError"></div>
+    <p *ngIf="mapLoading" class="map-message">Loading map…</p>
+    <p *ngIf="mapError" class="map-message" role="alert">{{mapError}}. Use the directory below.</p>
+    <button class="search-map-button" *ngIf="!mapLoading&&!mapError&&!selectedPlace" (click)="searchMapArea()">Search this map area</button>
+    <div *ngIf="userCoords&&!mapLoading&&!mapError" class="location-map-label"><span class="location-legend-dot"></span>{{locationIsApproximate ? 'Approximate location' : 'Your device location'}} · {{accuracyMeters}} m</div>
+  </div>
+  <div class="page-body map-caption"><span>{{markersInView}} {{markersInView===1 ? 'pin' : 'pins'}} in view<span *ngIf="matchingInView>markersInView"> of {{matchingInView}} — zoom in or choose a category to see more</span></span><span>H Hospital · P Police · F Fire · R Rescue · G Government · E Evacuation</span></div>
+
+  <section class="page-body places-list">
+    <div class="results-heading"><h2>{{filteredLocations.length | number}} {{filteredLocations.length===1 ? 'place' : 'places'}} found</h2><p>{{distanceLabel}}</p></div>
+    <p class="availability-note">For an active evacuation site, follow your LGU's instructions. <a href="https://quezoncity.gov.ph/qcitizen-guides/qc-earthquake-evacuation-centers/" target="_blank" rel="noopener">QC official evacuation guide</a> · <a href="https://quezoncity.gov.ph/quezon-city-government-directory/" target="_blank" rel="noopener">QC response directory</a></p>
+    <p *ngIf="directoryLoading" role="status">Opening saved directory…</p>
+    <div *ngIf="directoryError" role="alert">{{directoryError}} <button (click)="loadDirectory()">Retry directory</button></div>
+    <article *ngFor="let place of visiblePlaces; trackBy:trackPlace" class="place-card" [id]="'place-'+place.id">
+      <div class="place-title"><span class="facility-icon" [style.color]="category(place.type).color"><ion-icon [name]="category(place.type).icon"></ion-icon></span><div><p class="category-label" [style.color]="category(place.type).color">{{category(place.type).name}}</p><h3>{{place.name}}</h3></div></div>
+      <p class="place-address">{{place.address}}</p><p class="place-distance">{{place.distance | number:'1.1-1'}} km from {{browseLabel.toLowerCase()}}</p><p class="facility-note">{{placeNote(place)}}</p>
+      <div class="place-actions"><button (click)="showOnMap(place)"><ion-icon name="location-outline"></ion-icon>Show on map</button><button (click)="handleGetDirections(place)"><ion-icon name="navigate"></ion-icon>Directions</button><button *ngIf="phoneFor(place)" (click)="handleCall(phoneFor(place))"><ion-icon name="call"></ion-icon>Call {{phoneFor(place)}}</button></div>
+      <p class="place-source"><a [href]="place.source" target="_blank" rel="noopener">Map source & details</a> · {{place.coordinateKind==='site' ? 'Site center; entrance may differ' : 'Mapped location'}}<span *ngIf="phoneFor(place)"> · {{place.phoneSource ? 'Official directory contact' : 'Number supplied by map contributor'}}</span><span *ngIf="place.phoneSource"> · <a [href]="place.phoneSource" target="_blank" rel="noopener">Official source</a></span></p>
+    </article>
+    <button class="show-more" *ngIf="listLimit<filteredLocations.length" (click)="listLimit=listLimit+30">Show 30 more · {{filteredLocations.length-listLimit}} remaining</button>
+    <div *ngIf="!directoryLoading&&!directoryError&&filteredLocations.length===0" class="empty-results"><ion-icon name="location-outline"></ion-icon><h3>No listed places match</h3><p>Increase the search range, choose All Philippines, or try a city name. A missing listing does not mean no help is available.</p></div>
+  </section>
+</ion-content>

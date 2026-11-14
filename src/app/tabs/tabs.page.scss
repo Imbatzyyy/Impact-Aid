@@ -1,0 +1,45 @@
+.custom-tab-bar {
+  --background: transparent;
+  position:absolute;
+  left:50%;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:calc(100% - 24px);
+  max-width:620px;
+  height:68px;
+  padding:5px;
+  border-radius:36px;
+  border:1px solid rgba(255,255,255,.9);
+  background:rgba(246,251,250,.86);
+  backdrop-filter:blur(22px) saturate(145%);
+  -webkit-backdrop-filter:blur(22px) saturate(145%);
+  box-shadow:0 8px 28px rgba(20,53,59,.14),inset 0 1px 1px rgba(255,255,255,.95);
+  overflow:hidden;
+  z-index:30;
+}
+ion-tab-button {
+  --color:#415d65;
+  --color-selected:#145a4d;
+  --background:transparent;
+  --background-focused:rgba(202,224,217,.55);
+  min-width:0;
+  max-width:none;
+  min-height:56px;
+  margin:0 1px;
+  border-radius:28px;
+  font-family:var(--ion-font-family);
+}
+ion-tab-button ion-icon { font-size:22px; margin:3px 0; }
+ion-tab-button span { font-size:10px; font-weight:650; line-height:15px; }
+ion-tab-button.tab-selected, ion-tab-button.related-selected {
+  --background:rgba(212,233,225,.8);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.8);
+}
+ion-tab-button[tab="sos"] { --color:#9a342d; --color-selected:#8c251e; }
+ion-tab-button[tab="sos"].tab-selected { --background:rgba(250,220,213,.85); }
+@supports not (backdrop-filter:blur(1px)) { .custom-tab-bar { background:rgba(246,251,250,.97); } }
+@media(max-width:350px) {
+  .custom-tab-bar { width:calc(100% - 16px); padding:4px; }
+  ion-tab-button span { font-size:9px; }
+  ion-tab-button ion-icon { font-size:21px; }
+}

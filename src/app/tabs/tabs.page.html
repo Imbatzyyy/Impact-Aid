@@ -1,0 +1,9 @@
+<ion-tabs>
+  <ion-tab-bar slot="bottom" class="custom-tab-bar" mode="md">
+    <ion-tab-button tab="home" aria-label="Home" [routerLink]="['/home']"><ion-icon name="home-outline"></ion-icon><span>Home</span></ion-tab-button>
+    <ion-tab-button tab="lessons" [class.related-selected]="router.url === '/quiz'" aria-label="Learn" [routerLink]="['/lessons']"><ion-icon name="book-outline"></ion-icon><span>Learn</span></ion-tab-button>
+    <ion-tab-button tab="sos" aria-label="Help" [routerLink]="['/sos']"><ion-icon name="call-outline"></ion-icon><span>Help</span></ion-tab-button>
+    <ion-tab-button tab="map" aria-label="Places" [routerLink]="['/map']"><ion-icon name="map-outline"></ion-icon><span>Places</span></ion-tab-button>
+    <ion-tab-button tab="progress" aria-label="Progress" [routerLink]="['/progress']"><ion-icon name="trending-up-outline"></ion-icon><span>Progress</span></ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

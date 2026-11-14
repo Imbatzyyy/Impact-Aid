@@ -1,0 +1,99 @@
+<ion-content [fullscreen]="true" class="bg-gray-50" scroll-y="true">
+  <!-- LESSON LIST VIEW -->
+  <div *ngIf="!selectedLesson" class="min-h-full flex flex-col">
+    <!-- Header -->
+    <div class="page-heading bg-linear-to-br from-blue-600 via-blue-500 to-cyan-500 px-6 py-8 text-white">
+      <h1 class="text-3xl font-bold mb-2">Disaster Lessons</h1>
+      <p class="text-blue-200">Learn how to prepare and respond</p>
+    </div>
+
+    <p class="page-intro">Learn at your own pace, then try a short quiz.<br><a routerLink="/quiz">Go to disaster quizzes <ion-icon name="arrow-forward-outline"></ion-icon></a></p>
+    <!-- Lessons Grid -->
+    <div class="page-body lesson-grid flex-1 p-6 grid gap-4">
+      <button
+        *ngFor="let lesson of lessons"
+        class="lesson-card relative bg-white rounded-3xl p-5 flex gap-4 items-start text-left transition-all hover:shadow-md active:scale-[0.98] lesson-card-hover"
+        (click)="selectLesson(lesson)"
+        [style.--border-gradient]="lesson.borderGradient"
+      >
+        <!-- Icon with gradient bubble -->
+        <div
+          class="icon-bubble w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 z-10"
+          [style.background]="'#e9f1ef'"
+        >
+          <ion-icon [name]="lesson.icon" class="text-3xl text-white"></ion-icon>
+        </div>
+
+        <!-- Text Content -->
+        <div class="flex-1 z-10">
+          <div class="flex items-center gap-2 mb-1">
+            
+            <h3 class="text-gray-900 text-lg font-semibold">{{ lesson.title }}</h3>
+          </div>
+          <p class="text-gray-600 text-sm mb-3">{{ lesson.subtitle }}</p>
+
+          <div class="flex items-center gap-2 text-sm font-semibold" [style.color]="'#1b6457'">
+            <ion-icon 
+              [name]="isCompleted(lesson.id) ? 'checkmark-circle' : 'book-outline'" 
+              class="text-lg"
+            ></ion-icon>
+            <span>{{ isCompleted(lesson.id) ? 'Completed' : 'Start Learning' }}</span>
+            <ion-icon name="arrow-forward-outline" class="text-sm opacity-0 transition-opacity"></ion-icon>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- LESSON DETAIL MODAL -->
+  <div *ngIf="selectedLesson" role="dialog" aria-modal="true" aria-label="Lesson" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-end z-50">
+    <div class="w-full max-w-md bg-white rounded-t-3xl shadow-xl overflow-hidden animate-slide-up h-[90%] flex flex-col">
+      <!-- HEADER -->
+      <div
+        class="px-6 pt-4 pb-6 text-white relative"
+        [style.background]="selectedLesson.iconGradient"
+      >
+        <button
+          class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 border-none rounded-full w-10 h-10 flex items-center justify-center"
+          aria-label="Close lesson" (click)="closeLesson()"
+        >
+          <ion-icon name="close-outline" class="text-white text-2xl"></ion-icon>
+        </button>
+
+        <div class="text-center mt-6">
+          <span class="text-5xl block mb-2">{{ selectedLesson.emoji }}</span>
+          <h2 class="text-2xl font-bold mb-1">{{ selectedLesson.title }}</h2>
+          <p class="opacity-90 text-sm">{{ selectedLesson.subtitle }}</p>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div 
+        #scrollContent
+        class="flex-1 overflow-y-auto px-6 py-4 lesson-content"
+        (scroll)="onScroll($event)"
+      >
+        <video *ngIf="selectedLesson" controls preload="metadata" playsinline class="w-full rounded-xl mb-4" [src]="'assets/lessons/'+videos[selectedLesson.id]+'.mp4'"></video>
+        <div [innerHTML]="selectedLesson.content.htmlContent" class="lesson-html"></div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="fixed top-4 inset-x-4 z-[110] bg-amber-100 p-3" role="alert">{{errorMessage}} <button (click)="selectedLesson && userId ? completeLesson() : ionViewWillEnter()">Retry</button></div>
+  <!-- Completion Popup -->
+  <div *ngIf="showCompletionPopup" class="fixed inset-0 flex items-center justify-center z-[100] animate-fade-in">
+    <div class="bg-white rounded-3xl p-8 shadow-2xl text-center max-w-sm mx-4 animate-scale-up">
+      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <ion-icon name="checkmark-circle" class="text-6xl text-green-500"></ion-icon>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-900 mb-2">Lesson Completed!</h3>
+      <p class="text-gray-600 mb-6">Great job! You've finished this lesson.</p>
+      <button
+        class="bg-linear-to-r from-blue-500 to-cyan-500 text-white px-8 py-3 rounded-xl font-semibold w-full"
+        (click)="closeCompletionPopup()"
+      >
+        Continue Learning
+      </button>
+    </div>
+  </div>
+</ion-content>

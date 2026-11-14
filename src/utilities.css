@@ -1,0 +1,6 @@
+@layer theme, base, components;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+/* Ionic uses unlayered resets; utilities must participate in the same cascade. */
+@import "tailwindcss/utilities.css" source(none);
+@source "./app";
