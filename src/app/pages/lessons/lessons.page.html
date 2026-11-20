@@ -14,7 +14,8 @@
     <div class="reading-nav"><span>Section {{section+1}} of {{chapters.length}}</span><div class="meter" role="progressbar" aria-label="Reading position" [attr.aria-valuenow]="section+1" aria-valuemin="1" [attr.aria-valuemax]="chapters.length"><span [style.width.%]="(section+1)/chapters.length*100"></span></div></div>
     @for (chapter of [chapters[section]]; track section) {
       <div [class.ia-forward]="direction==='forward'" [class.ia-back]="direction==='back'">
-        @if(section===0){<details class="video-panel"><summary><ion-icon name="play-circle-outline"></ion-icon> Watch the lesson video</summary><video controls preload="none" playsinline [src]="'assets/lessons/'+topic.video+'.mp4'" [attr.aria-label]="topic.title+' lesson video'"></video></details>}
+        @if(section===0){<details class="video-panel"><summary><ion-icon name="play-circle-outline"></ion-icon> Watch the lesson video</summary><video #player controls preload="none" playsinline [src]="videoSrc(topic.video)" (loadedmetadata)="restore(player)" (error)="fallBack(player)" [attr.aria-label]="topic.title+' lesson video'"></video>
+          <fieldset class="quality" aria-describedby="quality-note"><legend>Quality</legend><div class="quality-chips">@for(q of qualities;track q.id){<label class="quality-chip" [class.on]="quality===q.id" [class.off]="!q.offline&&!online"><input type="radio" name="video-quality" [value]="q.id" [checked]="quality===q.id" [disabled]="!q.offline&&!online" (change)="setQuality(q.id,player)"><span>{{q.id}}</span>@if(q.offline){<span class="saved-badge" aria-hidden="true"><ion-icon name="download"></ion-icon></span>}</label>}</div><p class="quality-note" id="quality-note" role="status">{{qualityNote}}</p></fieldset></details>}
         <article class="reading-sheet"><h2>{{chapter.title}}</h2><div class="reading-prose" [innerHTML]="chapter.html"></div></article>
       </div>
     }
