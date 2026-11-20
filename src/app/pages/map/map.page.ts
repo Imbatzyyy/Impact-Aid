@@ -21,9 +21,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 
-import { EmergencyPlace, PlaceResult, PlaceDirectory, PlaceType, PLACE_CATEGORIES, findPlaces, escapeMapText, dialablePhone } from '../../models/emergency-places';
+import { EmergencyPlace, PlaceResult, PlaceDirectory, PlaceType, PLACE_CATEGORIES, findPlaces, escapeMapText, dialablePhone, distanceKm } from '../../models/emergency-places';
+import { showToast, Tone } from '../../ui/feedback';
 
 const FRESH_FIX_MS = 30_000;
+const QC_CENTER = { lat: 14.641, lng: 121.042 };
+/** Quezon City's own guides are only useful while browsing in or near the city. */
+const QC_LINKS_KM = 15;
+const DISTANCE_PHRASES: Record<string, string> = {
+  'Your location': 'your location', 'Selected map area': 'the selected map area', 'Last location search': 'your last location',
+};
 const LOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true, maximumAge: 0, timeout: 20_000,
 };
@@ -64,9 +71,7 @@ export class MapPage implements AfterViewInit, OnDestroy {
   private accuracyCircle: L.Circle | null = null;
   private userDot: L.CircleMarker | null = null;
   private readonly visibilityChanged = () => {
-    if (document.hidden) this.zone.run(() => {
-      void this.stopLocation('Location paused. Tap Use my location when you return.');
-    });
+    if (document.hidden) this.zone.run(() => this.pauseLocation('Location paused. Tap Use my location when you return.'));
   };
 
   get accuracyMeters() { return this.locationAccuracy === null ? null : Math.ceil(this.locationAccuracy); }
@@ -92,7 +97,10 @@ export class MapPage implements AfterViewInit, OnDestroy {
   morePlaces(){this.listLimit+=30;this.visiblePlaces=this.filteredLocations.slice(0,this.listLimit);}
   private iconCache=new Map<string,L.DivIcon>();
   private searchTimer?:ReturnType<typeof setTimeout>;
-  get distanceLabel(){return 'Straight-line distance from ' + this.browseLabel.toLowerCase();}
+  /** "Quezon City", "your location"…, ready to follow "from". */
+  get distancePhrase(){return DISTANCE_PHRASES[this.browseLabel] ?? this.browseLabel;}
+  get distanceLabel(){return 'Straight-line distance from ' + this.distancePhrase;}
+  get nearQuezonCity(){return distanceKm(this.browseCenter,QC_CENTER)<=QC_LINKS_KM;}
   get publicMode(){return typeof window !== 'undefined' && window.location.pathname==='/places';}
 
   async loadDirectory(){
@@ -127,8 +135,16 @@ export class MapPage implements AfterViewInit, OnDestroy {
 
   showOnMap(place:PlaceResult){
     this.selectedPlace=place;
-    this.zone.runOutsideAngular(()=>{this.map?.setView([place.lat,place.lng],16,{animate:false});this.updateMarkers();this.markerById.get(place.id)?.openPopup();});
-    this.mapElement.nativeElement.scrollIntoView({behavior:'smooth',block:'center'});
+    const reduceMotion=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.mapElement.nativeElement.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'center'});
+    this.zone.runOutsideAngular(()=>{
+      const map=this.map;if(!map)return;
+      const reveal=()=>{if(this.selectedPlace?.id!==place.id)return;this.updateMarkers();this.markerById.get(place.id)?.openPopup();};
+      if(reduceMotion||typeof map.flyTo!=='function'){map.setView([place.lat,place.lng],16,{animate:false});reveal();return;}
+      // Glide to the place, then open its card once the map settles.
+      map.once('moveend',reveal);
+      map.flyTo([place.lat,place.lng],16,{duration:0.9,easeLinearity:0.3});
+    });
   }
 
   category(type:string){return this.placeCategories.find(c=>c.id===type)??this.placeCategories[0];}
@@ -151,7 +167,12 @@ export class MapPage implements AfterViewInit, OnDestroy {
   }
   ionViewWillLeave(){
     this.pageVisible=false;
-    void this.stopLocation('Location paused. Tap Use my location to start again.');
+    this.pauseLocation('Location paused. Tap Use my location to start again.');
+  }
+  /** Says "paused" only when location was actually on; otherwise the current message stays. */
+  private pauseLocation(message:string){
+    const wasActive=this.locationBusy||this.watchIds.size>0||this.userCoords!==null;
+    void this.stopLocation(wasActive?message:this.locationStatus);
   }
 
   ngOnDestroy() {
@@ -420,21 +441,12 @@ export class MapPage implements AfterViewInit, OnDestroy {
 
   handleGetDirections(p: EmergencyPlace) {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`, '_blank');
-    this.showToast('Opening directions in Google Maps', 'success');
+    void this.showToast('Opening directions in Google Maps', 'success');
   }
 
   handleCall(phone: string) {
     window.location.href='tel:'+phone.replace(/[^0-9+]/g,'');
   }
 
-  async showToast(message: string, color: string = 'primary') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 2000,
-      position: 'bottom',
-      color,
-      cssClass: 'custom-toast',
-    });
-    toast.present();
-  }
+  showToast(message: string, color: Tone = 'primary') { return showToast(this.toastController, message, color, 2000); }
 }

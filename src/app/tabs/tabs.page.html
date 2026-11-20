@@ -1,9 +1,10 @@
-<ion-tabs>
-  <ion-tab-bar slot="bottom" class="custom-tab-bar" mode="md">
-    <ion-tab-button tab="home" aria-label="Home" [routerLink]="['/home']"><ion-icon name="home-outline"></ion-icon><span>Home</span></ion-tab-button>
-    <ion-tab-button tab="lessons" [class.related-selected]="router.url === '/quiz'" aria-label="Learn" [routerLink]="['/lessons']"><ion-icon name="book-outline"></ion-icon><span>Learn</span></ion-tab-button>
-    <ion-tab-button tab="sos" aria-label="Help" [routerLink]="['/sos']"><ion-icon name="call-outline"></ion-icon><span>Help</span></ion-tab-button>
-    <ion-tab-button tab="map" aria-label="Places" [routerLink]="['/map']"><ion-icon name="map-outline"></ion-icon><span>Places</span></ion-tab-button>
-    <ion-tab-button tab="progress" aria-label="Progress" [routerLink]="['/progress']"><ion-icon name="trending-up-outline"></ion-icon><span>Progress</span></ion-tab-button>
+<ion-tabs (ionTabsDidChange)="tabChanged()">
+  <ion-tab-bar slot="bottom" id="app-tab-bar" class="custom-tab-bar" mode="md" [style.--tab-index]="indicator" [class.no-selection]="active<0" [class.help-selected]="active===2">
+    <span class="tab-indicator" aria-hidden="true"></span>
+    @for (tab of tabs; track tab.id; let i = $index) {
+      <ion-tab-button [tab]="tab.id" [class.related-selected]="i===1 && active===1" [attr.aria-label]="tab.label" [routerLink]="['/'+tab.id]">
+        <ion-icon [name]="active===i ? tab.icon : tab.icon+'-outline'"></ion-icon><span>{{tab.label}}</span>
+      </ion-tab-button>
+    }
   </ion-tab-bar>
 </ion-tabs>

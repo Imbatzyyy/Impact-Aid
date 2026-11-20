@@ -1,41 +1,38 @@
-import { ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { IonContent, IonIcon, IonModal, ToastController, AlertController } from '@ionic/angular';
 import { db } from '../../services/backend';
-import { Component } from '@angular/core';
-import { IonContent, IonIcon, ToastController, AlertController } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { showToast, Tone } from '../../ui/feedback';
 
 type ModalType = 'faqs' | 'about' | 'privacy' | 'logout' | null;
 
-interface QA {
-  question: string;
-  answer: string;
-}
-interface FAQSection {
-  title: string;
-  items: QA[];
-}
+export const APP_VERSION = '2.4.0';
+const SITE = 'https://imbatzyyy.github.io/Impact-Aid/';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-settings',
   standalone: true,
-  imports: [IonContent, IonIcon, CommonModule],
+  imports: [IonContent, IonIcon, IonModal, RouterLink],
   templateUrl: './settings.page.html',
   styleUrls: ['./settings.page.scss'],
 })
 export class SettingsPage {
   showModal: ModalType = null;
-  loggingOut=false;
+  loggingOut = false;
+  readonly version = APP_VERSION;
+  readonly year = new Date().getFullYear();
+  readonly links = { privacy: SITE + 'privacy.html', terms: SITE + 'terms.html', about: SITE };
+  readonly titles: Record<'faqs' | 'about' | 'privacy', string> = { faqs: 'Questions and answers', about: 'About Impact Aid', privacy: 'Privacy and terms' };
 
   mission = 'Help Filipino communities learn practical disaster preparedness through lessons, quizzes, and emergency contact information.';
   vision = 'A Philippines where people can prepare for disasters and make informed decisions with their families and communities.';
   faqSections = [{title:'Using Impact Aid',items:[
     {question:'What does Impact Aid do?',answer:'Read six disaster preparedness lessons, take quizzes, track your progress, save local contacts, and browse a Philippine emergency facility directory.'},
     {question:'How do I sign in after the update?',answer:'Use Google or your email and password. Email registrations need a confirmation code; Google verifies its own account. Use the same verified email to keep your existing learning record.'},
-    {question:'Does the SOS button dispatch help?',answer:'It opens your phone dialer with 911. You must place the call yourself. The app does not dispatch responders or send your location.'},
+    {question:'Does the Call 911 button dispatch help?',answer:'It opens your phone dialer with 911. You must place the call yourself. The app does not dispatch responders or send your location.'},
     {question:'Can I use the app offline?',answer:'Lesson text, images, videos, quiz questions, and the government contact directory are included in the APK. Opening a semester quiz, saving progress or contacts, loading account data and viewing map imagery require internet. Unsubmitted answers stay on this installation; reconnect and tap Save result.'},
-    {question:'How do I change my profile?',answer:'Tap your initial on Home, choose Edit profile, and update your name, username, optional age, mobile number, address or photo. Review and confirm Save changes. Your sign-in email is read-only.'},
+    {question:'How do I change my profile?',answer:'Tap your photo or initial on Home, choose Edit profile, and update your name, username, optional age, mobile number, address or photo. Then tap Save changes. Your sign-in email is read-only.'},
     {question:'How do I earn a certificate?',answer:'Complete all six lessons and pass every quiz with at least 60%. Open Progress to download or share your completion certificate. This is an app learning record, not a professional qualification.'},
     {question:'Where can I request help with my account?',answer:'Contact the Impact Aid organization or project administrator who provided your app installation. Emergency assistance should be requested through the appropriate hotline.'}
   ]}];
@@ -44,7 +41,7 @@ export class SettingsPage {
     {heading:'Location and external services',bullets:['Location is requested only when you select Use my location. It is used on the device to center the map and calculate distances; it is not saved to your account.','Map tiles are requested from OpenStreetMap. Directions open Google Maps with the selected facility coordinates. These services receive normal connection information, such as your IP address.','Google sign-in shares your basic profile and verified email with Supabase to create or access your account. Impact Aid does not request Gmail, Drive or Google Contacts access. Supabase and Resend process email confirmation and password resets. Confirmation uses a code; Forgot password emails a private link to the Impact Aid website. Never share codes or reset links.']},
     {heading:'Address suggestions',bullets:['PSGC Cloud supplies public city and barangay names. Suggestions are matched on this device. The address provider receives the selected city code to retrieve its barangays, but not your name, house, street, age or saved profile. You can type an address manually.']},
     {heading:'Data on your device',bullets:['This device stores your sign-in session, unfinished quiz answers and a random installation ID for semester assignments. That ID is not a hardware identifier. Keep your device secured.','Downloaded certificates contain your display name. You choose where to save or share them.','No advertising or analytics SDK is included.']},
-    {heading:'Updating or removing information',bullets:['Update your display name and optional address from your profile. Remove saved contacts from the Local Contacts tab.','For account access, export, or deletion requests, contact the Impact Aid project administrator who provided your installation.']}
+    {heading:'Updating or removing information',bullets:['Update your display name and optional address from your profile. Remove saved contacts from My contacts on the Help screen.','For account access, export, or deletion requests, contact the Impact Aid project administrator who provided your installation.']}
   ]};
   termsOfUse = {title:'Using the app',bullets:[
     'Impact Aid provides educational information and a facility directory. Follow current instructions from local authorities during an emergency.',
@@ -60,11 +57,23 @@ export class SettingsPage {
     private router: Router
   ) {}
 
-  openModal(type: ModalType) {
-    this.showModal = type;
-  }
-  closeModal() {
-    this.showModal = null;
+  get sheetTitle() { return this.showModal && this.showModal !== 'logout' ? this.titles[this.showModal] : ''; }
+  openModal(type: ModalType) { this.showModal = type; }
+  closeModal() { this.showModal = null; }
+
+  async confirmLogout() {
+    if (this.loggingOut) return;
+    const alert = await this.alertController.create({
+      header: 'Sign out?',
+      message: 'Your progress stays saved in your account and comes back when you sign in again.',
+      cssClass: 'custom-alert',
+      buttons: [
+        { text: 'Cancel', role: 'cancel', cssClass: 'alert-button-cancel' },
+        { text: 'Sign out', role: 'confirm', cssClass: 'alert-button-danger' },
+      ],
+    });
+    await alert.present();
+    if ((await alert.onDidDismiss()).role === 'confirm') await this.handleLogout();
   }
 
   async handleLogout() {
@@ -93,23 +102,14 @@ export class SettingsPage {
         leaveAccount();
       }
       if(!await navigation)throw new Error('Could not open sign in.');
-      await this.showToast(signOutError ? 'Signed out on this device. Server sign-out could not be confirmed.' : 'Logged out successfully',signOutError ? 'warning' : 'success');
+      await this.showToast(signOutError ? 'Signed out on this device. Server sign-out could not be confirmed.' : 'You’re signed out. See you soon.',signOutError ? 'warning' : 'success');
     } catch {
-      await this.showToast(locallySignedOut ? 'Signed out on this device. Please open the sign-in screen.' : 'Logout failed. Try again.', 'danger');
+      await this.showToast(locallySignedOut ? 'Signed out on this device. Please open the sign-in screen.' : 'Sign out failed. Try again.', 'danger');
     } finally {
       subscription.unsubscribe();
       this.loggingOut=false;
     }
   }
 
-  async showToast(message: string, color: string = 'primary') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 2200,
-      position: 'bottom',
-      color,
-      cssClass: 'custom-toast',
-    });
-    toast.present();
-  }
+  showToast(message: string, color: Tone = 'primary') { return showToast(this.toastController, message, color); }
 }

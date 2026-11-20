@@ -1,111 +1,49 @@
-<ion-content class="study-page"><main class="study-shell">
+<ion-content class="study-page"><main class="study-shell ia-stagger">
 <header class="study-head"><div class="signature"><img src="assets/impact-shield.png" alt=""><span>Impact Aid</span></div><p class="kicker">Learning record</p><h1>My Progress</h1><p>Your completed guides, practice scores and next steps in one place.</p></header>
-@if(loading){<p class="load-note" role="status">Loading your record…</p>} @else if(loadError){<p class="notice" role="alert">Your record could not load. <button (click)="ionViewWillEnter()">Try again</button></p>} @else {
-<section class="record-summary"><p class="overline">Course progress</p><div class="record-number">{{progressPercentage}}<small>%</small></div><progress [value]="progressPercentage" max="100" aria-label="Course completion"></progress><div class="milestones"><span><b>{{completedCount}} / 6</b> guides completed</span><span><b>{{completedQuizzes}} / 6</b> quizzes passed</span></div></section>
+@if (loading) {
+  <section class="record-summary" aria-hidden="true"><span class="ia-skeleton" style="width:120px;height:11px"></span><span class="ia-skeleton" style="width:96px;height:46px;margin:12px 0"></span><span class="ia-skeleton" style="height:8px"></span><div class="milestones"><span class="ia-skeleton" style="width:120px;height:32px"></span><span class="ia-skeleton" style="width:120px;height:32px"></span></div></section>
+  <p class="sr-only" role="status">Loading your record…</p>
+  <div class="topic-list" aria-hidden="true">@for (row of [1,2,3]; track row) {<div class="topic-row"><span class="ia-skeleton" style="width:45px;height:45px;border-radius:12px"></span><span class="topic-copy ia-skeleton-stack"><span class="ia-skeleton" style="width:40%;height:15px"></span><span class="ia-skeleton" style="width:65%;height:12px"></span></span></div>}</div>
+} @else if (loadError) {
+  <p class="notice" role="alert">Your record could not load. <button (click)="ionViewWillEnter()">Try again</button></p>
+} @else {
+<section class="record-summary" [class.complete]="isFullyCompleted">
+  <p class="kicker">Course progress</p>
+  <div class="record-number"><span class="ia-count" aria-hidden="true" [style.--to]="progressPercentage"></span><span class="sr-only">{{progressPercentage}}</span><small>%</small></div>
+  <div class="record-bar" role="progressbar" aria-label="Course completion" [attr.aria-valuenow]="progressPercentage" aria-valuemin="0" aria-valuemax="100"><span class="ia-bar-fill" [style.width.%]="progressPercentage"></span></div>
+  <div class="milestones"><span><b>{{completedCount}} / 6</b> guides completed</span><span><b>{{completedQuizzes}} / 6</b> quizzes passed</span></div>
+  <p class="encourage">@if (isFullyCompleted) {<ion-icon name="trophy"></ion-icon> Course complete. Well done!} @else {<ion-icon name="sparkles"></ion-icon> {{remainingSteps}} {{remainingSteps===1?'step':'steps'}} to your certificate.}</p>
+</section>
 <div class="section-line"><h2>Topic record</h2><small>Most recent score</small></div>
-<div class="topic-list">@for(t of course;track t.title;let i=$index){<div class="topic-row"><span class="topic-icon" [attr.data-tone]="t.tone"><ion-icon [name]="t.icon"></ion-icon></span><span class="topic-copy"><strong>{{t.title}}</strong><span>{{isLessonCompleted(i)?'Guide complete':'Guide open'}} · {{hasQuizAttempt(i)?'Quiz '+getQuizScore(i)+'%':'Quiz not taken'}}</span></span>@if(isQuizPassed(i)){<ion-icon name="checkmark-circle" aria-label="Quiz passed"></ion-icon>}</div>}</div>
+<div class="topic-list">@for(t of course;track t.title;let i=$index){<div class="topic-row"><span class="topic-icon" [attr.data-tone]="t.tone"><ion-icon [name]="t.icon"></ion-icon></span><span class="topic-copy"><strong>{{t.title}}</strong><span class="chips"><span class="chip" [class.on]="isLessonCompleted(i)">{{isLessonCompleted(i)?'Guide complete':'Guide not finished'}}</span><span class="chip" [class.on]="isQuizPassed(i)" [class.tried]="hasQuizAttempt(i)&&!isQuizPassed(i)">{{hasQuizAttempt(i)?'Quiz '+getQuizScore(i)+'%':'Quiz not taken'}}</span></span></span>@if(isLessonCompleted(i)&&isQuizPassed(i)){<span class="topic-done"><ion-icon name="checkmark" aria-label="Guide and quiz complete"></ion-icon></span>}</div>}</div>
 <div class="study-actions"><a class="secondary" routerLink="/lessons">Open field guides</a><a class="primary" routerLink="/quiz">Practice quizzes</a></div>
 <div class="section-line"><h2>Recent attempts</h2><small>Latest 10</small></div>
-@if(history.length){<ul class="history">@for(h of history;track $index){<li><span><b>{{h.topic | titlecase}}</b><small>{{h.taken_at | date:'mediumDate'}}</small></span><strong>{{h.correct}} / {{h.total}}</strong></li>}</ul>}@else{<p class="muted">New submissions will appear here. Older quiz scores are in your topic record above.</p>}
-<div class="section-line"><h2>Recognition</h2></div>
-@if(progress.badges.length){<ul class="badge-list">@for(b of progress.badges;track b){<li><ion-icon name="ribbon-outline"></ion-icon>{{b}}</li>}</ul>}
-<div class="certificate-note"><h3>Preparedness course certificate</h3><p>{{isFullyCompleted?'Your certificate is ready to view, save or share.':'Complete all six guides and pass each quiz to earn your certificate.'}}</p>@if(isFullyCompleted){<button class="primary" (click)="openCertificate()">View certificate</button>}</div>
+@if(history.length){<ul class="history">@for(h of history;track $index){<li><span><b>{{h.topic | titlecase}}</b><small>{{h.taken_at | date:'mediumDate'}}</small></span><strong [class.pass]="h.correct/h.total>=0.6">{{h.correct}} / {{h.total}}</strong></li>}</ul>}@else{<p class="muted">New submissions will appear here. Older quiz scores are in your topic record above.</p>}
+@if(progress.badges.length){<div class="section-line"><h2>Recognition</h2></div><ul class="badge-list">@for(b of progress.badges;track b){<li><ion-icon name="ribbon-outline"></ion-icon>{{b}}</li>}</ul>}
+<div class="certificate-note" [class.ready]="isFullyCompleted"><span class="cert-icon"><ion-icon [name]="isFullyCompleted?'trophy':'ribbon-outline'"></ion-icon></span><div><h3>Preparedness course certificate</h3><p>{{isFullyCompleted?'Your certificate is ready to view, save or share.':'Complete all six guides and pass each quiz to earn your certificate.'}}</p>@if(isFullyCompleted){<button class="primary" (click)="openCertificate()">View certificate</button>}</div></div>
 }</main>
 
-  <div
-    *ngIf="showCertificate" role="dialog" aria-modal="true" aria-label="Course certificate"
-    class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center z-50 p-4 animate-in fade-in justify-center"
-    style="position: fixed; z-index: 9999"
-  >
-    <div
-      class="bg-white w-full max-w-lg rounded-3xl overflow-hidden animate-in zoom-in shadow-2xl certificate-container"
-    >
-      <!-- Decorative Header -->
-      <div class="certificate-header relative overflow-hidden">
-        
-        
-        
-        <div class="relative p-8 text-center">
-          <button
-            (click)="closeCertificate()" aria-label="Close certificate"
-            class="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center hover:bg-white/30 transition-colors justify-center border-0 z-10"
-          >
-            <ion-icon name="close" class="text-white text-xl"></ion-icon>
-          </button>
-          
-          <div class="certificate-badge">
-            <ion-icon name="trophy" class="text-yellow-300 text-4xl mb-3"></ion-icon>
-          </div>
-          
-          <h2 class="text-white text-3xl mb-2 m-0 certificate-title">Certificate of Achievement</h2>
-          <p class="text-blue-100 m-0 text-lg">Impact Aid Disaster Preparedness</p>
-          
-          <div class="mt-4 flex items-center justify-center gap-2">
-            <div class="w-16 h-1 bg-yellow-300 rounded-full"></div>
-            <ion-icon name="star" class="text-yellow-300 text-xl"></ion-icon>
-            <div class="w-16 h-1 bg-yellow-300 rounded-full"></div>
-          </div>
-        </div>
+<ion-modal class="ia-sheet certificate-sheet" [isOpen]="showCertificate" [initialBreakpoint]="1" [breakpoints]="[0, 1]" (didDismiss)="closeCertificate()">
+  <ng-template>
+    <div class="ia-sheet-head"><div><h2>Your certificate</h2><p>Save it, or share it with family and friends.</p></div><button type="button" class="ia-close" (click)="closeCertificate()" aria-label="Close certificate"><ion-icon name="close"></ion-icon></button></div>
+    <div class="ia-sheet-scroll">
+      <article class="certificate" aria-label="Certificate of Achievement">
+        <div class="cert-seal" aria-hidden="true"><ion-icon name="trophy"></ion-icon></div>
+        <p class="cert-kicker">Impact Aid · Philippine disaster preparedness</p>
+        <h3 class="cert-title">Certificate of Achievement</h3>
+        <span class="cert-rule" aria-hidden="true"></span>
+        <p class="cert-small">This certifies that</p>
+        <p class="cert-name">{{ user.username }}</p>
+        <p class="cert-body">completed all six disaster preparedness lessons and passed the Earthquake, Tsunami, Typhoon, Flood, Landslide and Volcanic Eruption quizzes.</p>
+        <dl class="cert-stats"><div><dt>Lessons</dt><dd>6/6</dd></div><div><dt>Quizzes</dt><dd>6/6</dd></div><div><dt>Average</dt><dd>{{ averageQuizScore }}%</dd></div></dl>
+        <p class="cert-meta">@if (issuedDate) {<span>Issued {{ issuedDate }}</span>}@if (certificateId) {<span>Certificate {{ certificateId }}</span>}</p>
+      </article>
+      <div class="certificate-actions">
+        <button class="ia-button" (click)="handleDownloadCertificate()"><ion-icon name="download"></ion-icon> Download</button>
+        <button class="ia-button secondary" (click)="handleShareCertificate()"><ion-icon name="share-social"></ion-icon> Share</button>
       </div>
-
-      <!-- Certificate Body -->
-      <div class="p-8 certificate-body">
-        <div class="border-4 border-double border-blue-200 rounded-2xl p-6 mb-6 bg-linear-to-br from-blue-50 to-purple-50">
-          <p class="text-gray-600 text-sm mb-3 m-0 uppercase tracking-wider">This certifies that</p>
-          <h3 class="text-blue-900 text-3xl mb-4 m-0 certificate-name">{{ user.username }}</h3>
-          
-          <p class="text-gray-700 text-sm leading-relaxed mb-6 m-0">
-            has completed all six <strong>Impact Aid disaster preparedness lessons</strong> and passed the quizzes for Earthquake, Tsunami, Typhoon, Flood, Landslide, and Volcanic Eruption. This certificate records learning in the app.
-          </p>
-
-          <div class="badge-grid grid grid-cols-3 gap-4 mb-6">
-            <div class="text-center p-3 bg-white rounded-xl shadow-sm">
-              <p class="text-gray-500 text-xs m-0 mb-1">Lessons</p>
-              <p class="text-blue-600 text-xl m-0">6/6</p>
-            </div>
-            <div class="text-center p-3 bg-white rounded-xl shadow-sm">
-              <p class="text-gray-500 text-xs m-0 mb-1">Quizzes</p>
-              <p class="text-purple-600 text-xl m-0">6/6</p>
-            </div>
-            <div class="text-center p-3 bg-white rounded-xl shadow-sm">
-              <p class="text-gray-500 text-xs m-0 mb-1">Avg Score</p>
-              <p class="text-emerald-600 text-xl m-0">{{ averageQuizScore }}%</p>
-            </div>
-          </div>
-
-          <div class="border-t-2 border-gray-200 pt-4 text-center">
-            <p class="text-gray-500 text-sm m-0 mb-2">
-              <ion-icon name="calendar-outline" class="align-middle"></ion-icon>
-              Issued: {{ currentDate }}
-            </p>
-            <p class="text-gray-400 text-xs m-0">
-              Certificate ID: {{ certificateId }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="certificate-actions">
-          <button
-            (click)="handleDownloadCertificate()"
-            class="certificate-primary"
-          >
-            <ion-icon name="download" class="text-xl"></ion-icon>
-            Download
-          </button>
-          <button
-            (click)="handleShareCertificate()"
-            class="certificate-secondary"
-          >
-            <ion-icon name="share-social" class="text-xl"></ion-icon>
-            Share
-          </button>
-        </div>
-        
-        <p class="text-center text-gray-500 text-xs mt-4 m-0">
-          Keep learning and revisit your emergency plan regularly.
-        </p>
-      </div>
+      <p class="cert-note">An app learning record. It doesn’t certify professional emergency-response skills. Keep learning and revisit your emergency plan regularly.</p>
     </div>
-  </div>
+  </ng-template>
+</ion-modal>
 </ion-content>

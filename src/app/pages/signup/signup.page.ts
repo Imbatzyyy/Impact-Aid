@@ -1,11 +1,12 @@
-import { GoogleAuthService } from '../../services/google-auth.service';
-import { ChangeDetectionStrategy } from '@angular/core';
-import { db, session, account, progressData, topics } from '../../services/backend';
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonButton, IonContent, IonIcon, IonInput, AlertController } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
+import { IonButton, IonContent, IonIcon, IonInput, AlertController } from '@ionic/angular';
+import { GoogleAuthService } from '../../services/google-auth.service';
+import { db } from '../../services/backend';
+import { authMessage, EMAIL_PATTERN } from '../../ui/auth-errors';
+
+type Field = 'username' | 'email' | 'password' | 'confirmPassword';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -13,89 +14,66 @@ import { Router, RouterLink } from '@angular/router';
   standalone: true,
   templateUrl: './signup.page.html',
   styleUrls: ['./signup.page.scss'],
-  imports: [CommonModule, FormsModule, IonButton, IonContent, IonIcon, IonInput, RouterLink],
+  imports: [FormsModule, IonButton, IonContent, IonIcon, IonInput, RouterLink],
 })
 export class SignupPage {
   username = '';
+  email = '';
   password = '';
   confirmPassword = '';
-  email = '';
-  address = '';
-  passwordVisible = false; // ✅ renamed for clarity
-  loading = false; // ✅ for the loading overlay
+  passwordVisible = false;
+  loading = false;
+  error = '';
+  errors: Record<Field, string> = { username: '', email: '', password: '', confirmPassword: '' };
 
   constructor(
     private router: Router,
     private alertCtrl: AlertController,
-    public google:GoogleAuthService
+    public google: GoogleAuthService,
   ) {}
 
-  togglePassword() {
-    this.passwordVisible = !this.passwordVisible; // ✅ consistent with HTML
+  togglePassword() { this.passwordVisible = !this.passwordVisible; }
+  clear(field: Field) { this.errors[field] = ''; this.error = ''; }
+
+  /** 0–3: how much the password has going for it, shown as a small meter. */
+  get strength() {
+    const p = this.password;
+    if (p.length < 6) return 0;
+    // Length matters most; mixing letter case, numbers and symbols helps a little.
+    const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z0-9]/].filter(kind => kind.test(p)).length;
+    if (p.length >= 12 && kinds >= 2 || p.length >= 10 && kinds >= 3) return 3;
+    if (p.length >= 8 && kinds >= 2) return 2;
+    return 1;
+  }
+  get strengthLabel() { return ['', 'Weak', 'Good', 'Strong'][this.strength]; }
+
+  private validate(): boolean {
+    const email = this.email.trim();
+    this.errors = {
+      username: this.username.trim() ? '' : 'Tell us what to call you.',
+      email: !email ? 'Enter your email address.' : EMAIL_PATTERN.test(email) ? '' : 'Enter a valid email address.',
+      password: this.password.length >= 6 ? '' : 'Use at least 6 characters.',
+      confirmPassword: !this.confirmPassword ? 'Enter your password again.' : this.confirmPassword === this.password ? '' : 'The passwords don’t match.',
+    };
+    return !Object.values(this.errors).some(Boolean);
   }
 
   async createAccount() {
-    if(this.loading||this.google.busy)return;
-    // ✅ Basic validation
-    if (!this.email || !this.password || !this.confirmPassword || !this.username) {
-      const alert = await this.alertCtrl.create({
-        header: 'Missing Fields',
-        message: 'Please fill in all required fields before proceeding.',
-        buttons: ['OK'],
-        cssClass: 'custom-alert',
-      });
-      await alert.present();
-      return;
-    }
-
-    if (this.password !== this.confirmPassword) {
-      const alert = await this.alertCtrl.create({
-        header: 'Password Mismatch',
-        message: 'Passwords do not match. Please try again.',
-        buttons: ['OK'],
-        cssClass: 'custom-alert',
-      });
-      await alert.present();
-      return;
-    }
-
-    // 🔄 Show loading overlay
+    if (this.loading || this.google.busy) return;
+    this.error = '';
+    if (!this.validate()) return;
     this.loading = true;
-
+    const email = this.email.trim();
     try {
-      if(!this.username.trim() || this.password.length < 6) throw new Error('Enter a name and a password of at least 6 characters.');
-      const {data,error}=await db.auth.signUp({email:this.email.trim(),password:this.password,options:{data:{username:this.username.trim(),address:this.address.trim()}}});
-      if(error) throw error;
-      this.password=this.confirmPassword='';
-      // ✅ Show success alert
-      const success = await this.alertCtrl.create({
-        header: 'Success',
-        message: data.session ? 'Your account is ready.' : 'Check your inbox for a confirmation email before signing in.',
-        buttons: ['OK'],
-        cssClass: 'custom-alert',
-      });
-      await success.present();
-
-      // ✅ Navigate to home
-      await this.router.navigateByUrl(data.session ? '/home' : '/login', { replaceUrl: true,state:{verificationEmail:this.email.trim()} });
-    } catch (err: any) {
-      const alert = await this.alertCtrl.create({
-        header: 'Signup Failed',
-        message: err.message,
-        buttons: ['OK'],
-        cssClass: 'custom-alert',
-      });
-      await alert.present();
+      const { data, error } = await db.auth.signUp({ email, password: this.password, options: { data: { username: this.username.trim(), address: '' } } });
+      if (error) throw error;
+      this.password = this.confirmPassword = '';
+      if (data.session) await this.router.navigateByUrl('/home', { replaceUrl: true });
+      else await this.router.navigateByUrl('/login', { replaceUrl: true, state: { verificationEmail: email, notice: `We sent a confirmation code to ${email}. Check your inbox and spam folder.` } });
+    } catch (error) {
+      this.error = authMessage(error, 'Your account could not be created. Check your connection and try again.');
     } finally {
-      this.loading = false; // ✅ Hide overlay
+      this.loading = false;
     }
-  }
-
-  goBack() {
-    this.router.navigate(['/login']);
-  }
-
-  goToLogin() {
-    this.router.navigate(['/login']);
   }
 }

@@ -1,25 +1,38 @@
 <ion-content class="study-page"><main class="study-shell">
 @if(!draft){
+<div class="ia-stagger">
 <header class="study-head"><div class="signature"><img src="assets/impact-shield.png" alt=""><span>Impact Aid</span></div><p class="kicker">Knowledge check</p><h1>Practice quizzes</h1><p>Put the field guides into practice. There’s no timer, and you can return to a question before you finish.</p></header>
 <nav class="study-tabs" aria-label="Learning activities"><a routerLink="/lessons">Lessons</a><span aria-current="page">Practice quizzes</span></nav>
 @if(term.current;as t){<aside class="term-card"><p class="kicker">{{term.review?'Between terms':'Current release'}} · QC</p><h2>{{t.label}}{{term.review?' review':''}}</h2><p>{{displayDate(t.starts)}} – {{displayDate(t.ends)}}.</p>@if(term.review){<p>Your previous set is open for practice. {{term.next?'Next release: '+displayDate(term.next.starts)+'.':'The next calendar has not been published.'}}</p>}</aside>}
-@else if(!loading&&!problem){<p class="load-note">No quiz release is open yet. @if(term.next){The first set opens {{displayDate(term.next.starts)}}.}</p>}
+@else if(loading){<div class="term-card" aria-hidden="true"><span class="ia-skeleton" style="width:40%;height:11px"></span><span class="ia-skeleton" style="width:60%;height:20px;margin-top:10px"></span></div>}
+@else if(!problem){<p class="load-note">No quiz release is open yet. @if(term.next){The first set opens {{displayDate(term.next.starts)}}.}</p>}
 <div class="section-line"><h2>Choose a topic</h2><small>15 questions each · 9 correct to pass</small></div>
-@if(loading){<p class="load-note" role="status">Loading your library…</p>}
+@if(loading){<p class="sr-only" role="status">Loading your library…</p>}
 @if(problem){<p class="notice" role="alert">{{problem}} @if(!uid){<button (click)="ionViewWillEnter()">Retry</button>}</p>}
-<div class="topic-list">@for(t of course;track t.title;let i=$index){<button class="topic-row" (click)="start(i)" [disabled]="busy||!uid||!term.current"><span class="topic-icon" [attr.data-tone]="t.tone"><ion-icon [name]="t.icon"></ion-icon></span><span class="topic-copy"><strong>{{t.title}}</strong><span>{{t.summary}}</span><em>{{hasDraft(i)?'Resume quiz':scores[i]>=0?'Latest score: '+scores[i]+'% · Practice again':'Start quiz'}}</em></span><ion-icon name="chevron-forward"></ion-icon></button>}</div>
+<div class="topic-list">@for(t of course;track t.title;let i=$index){<button class="topic-row" (click)="start(i)" [disabled]="busy||!uid||!term.current"><span class="topic-icon" [attr.data-tone]="t.tone"><ion-icon [name]="t.icon"></ion-icon>@if(scores[i]>=60){<span class="done-badge" aria-hidden="true"><ion-icon name="checkmark"></ion-icon></span>}</span><span class="topic-copy"><strong>{{t.title}}</strong><span>{{t.summary}}</span>@if(loading){<em class="ia-skeleton" style="width:120px;height:12px" aria-hidden="true"></em>}@else{<em [class.done]="scores[i]>=60">{{hasDraft(i)?'Resume quiz':scores[i]>=0?'Latest score: '+scores[i]+'% · Practice again':'Start quiz'}}</em>}</span><ion-icon name="chevron-forward"></ion-icon></button>}</div>
+</div>
 } @else if(quiz;as q){
+<div class="reader">
 <button class="back-link" (click)="library()" [disabled]="busy"><ion-icon name="arrow-back-outline"></ion-icon> All quizzes</button>
 <header class="reader-head"><span class="topic-icon" [attr.data-tone]="course[draft.topic].tone"><ion-icon [name]="course[draft.topic].icon"></ion-icon></span><div><p class="kicker">{{draft.label}} / Practice</p><h1>{{q.name}}</h1></div></header>
 @if(result===null&&item;as shown){
-<div class="reading-nav" aria-live="polite">Question {{draft.page+1}} of 15<progress [value]="draft.page+1" max="15" aria-label="Quiz position"></progress></div>
-<article class="question-sheet"><p class="kicker">Choose one answer</p><h2>{{q.allQuestions[shown.id].question}}</h2><div class="answers">@for(opt of shown.order;track opt;let j=$index){<button [attr.aria-pressed]="draft.answers[draft.page]===opt" (click)="choose(opt)" [disabled]="busy"><b>{{'ABCD'[j]}}</b><span>{{q.allQuestions[shown.id].options[opt]}}</span></button>}</div></article>
+<div class="reading-nav" aria-live="polite">Question {{draft.page+1}} of 15<div class="meter" role="progressbar" aria-label="Quiz position" [attr.aria-valuenow]="draft.page+1" aria-valuemin="1" aria-valuemax="15"><span [style.width.%]="(draft.page+1)/15*100"></span></div></div>
+@for(page of [draft.page];track page){
+<article class="question-sheet" [class.ia-forward]="direction==='forward'" [class.ia-back]="direction==='back'"><p class="kicker">Choose one answer</p><h2>{{q.allQuestions[shown.id].question}}</h2><div class="answers" role="radiogroup" [attr.aria-label]="'Answers for question '+(draft.page+1)">@for(opt of shown.order;track opt;let j=$index){<button role="radio" [attr.aria-checked]="draft.answers[draft.page]===opt" (click)="choose(opt)" [disabled]="busy"><b>{{'ABCD'[j]}}</b><span>{{q.allQuestions[shown.id].options[opt]}}</span></button>}</div></article>
+}
 @if(problem){<p class="notice" role="alert">{{problem}}</p>}
-<div class="study-actions"><button class="secondary" (click)="move(draft.page-1)" [disabled]="busy||draft.page===0">Previous</button>@if(draft.page<14){<button class="primary" (click)="move(draft.page+1)" [disabled]="draft.answers[draft.page]<0">Next question</button>}@else{<button class="primary" (click)="submit()" [disabled]="busy||draft.answers[draft.page]<0">{{busy?'Saving…':'Save result'}}</button>}</div><p class="muted">You can leave and resume this quiz on this device.</p>
+<div class="study-actions"><button class="secondary" (click)="move(draft.page-1)" [disabled]="busy||draft.page===0"><ion-icon name="arrow-back-outline"></ion-icon> Previous</button>@if(draft.page<14){<button class="primary" (click)="move(draft.page+1)" [disabled]="draft.answers[draft.page]<0">Next question <ion-icon name="arrow-forward-outline"></ion-icon></button>}@else{<button class="primary" (click)="submit()" [disabled]="busy||draft.answers[draft.page]<0">{{busy?'Saving…':'Save result'}} <ion-icon name="checkmark-circle"></ion-icon></button>}</div><p class="muted">You can leave and resume this quiz on this device.</p>
 } @else if(result!==null){
-<article class="term-card result" role="status"><p class="kicker">Recorded in My Progress</p><h2>{{result}} <small>of 15 correct</small></h2><p>{{result>=9?'You passed this practice quiz.':'You can practice again whenever you’re ready.'}} Review your answers below.</p></article>
-<div class="study-actions"><a routerLink="/progress" class="primary">My Progress</a><button (click)="start(draft.topic)" [disabled]="busy" class="secondary">Practice again</button></div>
+<article class="term-card result" [class.passed]="passed" role="status">
+  @if(passed){<div class="confetti" aria-hidden="true">@for(c of confetti;track c){<i [style.--i]="c"></i>}</div>}
+  <div class="score-ring" [style.--pct]="result/15*100" aria-hidden="true"><span class="ia-count" [style.--to]="result"></span></div>
+  <div class="result-copy"><p class="kicker">{{passed?'Passed · Recorded in My Progress':'Recorded in My Progress'}}</p><h2>{{result}} <small>of 15 correct</small></h2><p>{{passed?'Great work. You know what to do.':'Good effort. Review your answers below, then practice again whenever you’re ready.'}}</p></div>
+</article>
+<div class="study-actions"><a routerLink="/progress" class="primary">My Progress</a><button (click)="start(draft.topic)" [disabled]="busy" class="secondary"><ion-icon name="refresh-outline"></ion-icon> Practice again</button></div>
 @if(problem){<p class="notice" role="alert">{{problem}}</p>}
-<div class="section-line"><h2>Answer review</h2></div>@for(x of draft.items;track x.id;let i=$index){<details class="review-item"><summary><small>{{i+1}} / {{q.allQuestions[x.id].correctAnswer===draft.answers[i]?'Correct':'Revisit'}}</small>{{q.allQuestions[x.id].question}}</summary><p>Your answer: {{q.allQuestions[x.id].options[draft.answers[i]]}}</p>@if(q.allQuestions[x.id].correctAnswer!==draft.answers[i]){<p><strong>Correct answer:</strong> {{q.allQuestions[x.id].options[q.allQuestions[x.id].correctAnswer]}}</p>}</details>}
-}}
+<div class="section-line"><h2>Answer review</h2></div>
+<div class="review-list">@for(x of draft.items;track x.id;let i=$index){<details class="review-item" [class.right]="q.allQuestions[x.id].correctAnswer===draft.answers[i]"><summary><span class="mark" aria-hidden="true"><ion-icon [name]="q.allQuestions[x.id].correctAnswer===draft.answers[i]?'checkmark':'close'"></ion-icon></span><span class="summary-copy"><small>{{i+1}} / {{q.allQuestions[x.id].correctAnswer===draft.answers[i]?'Correct':'Revisit'}}</small>{{q.allQuestions[x.id].question}}</span><ion-icon class="chev" name="chevron-down"></ion-icon></summary><div class="review-body"><p>Your answer: {{q.allQuestions[x.id].options[draft.answers[i]]}}</p>@if(q.allQuestions[x.id].correctAnswer!==draft.answers[i]){<p><strong>Correct answer:</strong> {{q.allQuestions[x.id].options[q.allQuestions[x.id].correctAnswer]}}</p>}</div></details>}</div>
+}
+</div>
+}
 </main></ion-content>
