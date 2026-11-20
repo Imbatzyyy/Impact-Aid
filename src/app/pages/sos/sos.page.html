@@ -1,71 +1,57 @@
 <ion-content class="help-content">
-  <main class="help-shell">
-    <a *ngIf="publicView" class="back-link" routerLink="/login"><ion-icon name="arrow-back-outline"></ion-icon> Back to sign in</a>
+  <main class="help-shell ia-stagger">
+    @if (publicView) {<a class="back-link" routerLink="/login"><ion-icon name="arrow-back-outline"></ion-icon> Back to sign in</a>}
     <header class="help-heading"><p class="eyebrow">Emergency contacts · Philippines</p><h1>Get help.</h1><p>Choose a number to open your phone dialer.</p></header>
     <section class="emergency-primary">
-      <div><p>Police · Fire · Medical</p><h2>National emergency</h2></div>
-      <button (click)="handleSOSCall()" aria-label="Call 911 — opens confirmation"><ion-icon name="call"></ion-icon><span>Call <strong>911</strong></span></button>
+      <div class="primary-label"><span class="live-dot" aria-hidden="true"></span><div><p>Police · Fire · Medical</p><h2>National emergency</h2></div></div>
+      <button class="call-911" (click)="handleSOSCall()" aria-label="Call 911 — opens confirmation"><ion-icon name="call"></ion-icon><span>Call <strong>911</strong></span></button>
       <p class="dialer-note">You confirm the call in your phone app. Impact Aid does not send a rescue request.</p>
     </section>
-    <a class="places-link" [routerLink]="publicView ? '/places' : '/map'"><ion-icon name="map-outline"></ion-icon><span>Find nearby emergency places<small>Fire stations, rescue teams, hospitals and local offices</small></span><ion-icon name="chevron-forward"></ion-icon></a>
-    <div class="help-tabs" aria-label="Contact lists"><button [attr.aria-pressed]="activeSegment==='government'" (click)="activeSegment='government'">Public hotlines</button><button [attr.aria-pressed]="activeSegment==='local'" (click)="activeSegment='local'">My contacts</button></div>
-    <section *ngIf="activeSegment==='government'" class="hotline-list" aria-label="Public hotlines">
-      <ng-container *ngFor="let contact of governmentContacts"><article *ngIf="contact.id!=='911'" class="hotline"><div><h2>{{ contact.name }}</h2><p *ngIf="contact.description">{{ contact.description }}</p><strong>{{ contact.number }}</strong></div><button (click)="handleCall(contact)" [attr.aria-label]="'Call '+contact.name"><ion-icon name="call-outline"></ion-icon><span>Call</span></button></article></ng-container>
-    </section>
-    <section *ngIf="activeSegment==='local'" class="hotline-list" aria-label="My contacts">
-      <div *ngIf="publicView" class="empty-contacts"><ion-icon name="heart-outline"></ion-icon><h2>Your people, close at hand.</h2><p>Sign in to view and save your personal emergency contacts.</p><a routerLink="/login" class="text-action">Sign in</a></div>
-      <ng-container *ngIf="!publicView">
-        <p *ngIf="contactsLoading" role="status">Loading your contacts…</p>
-        <div *ngIf="contactsError" class="status-message" role="alert">Couldn't load your contacts. <button (click)="ionViewWillEnter()">Try again</button></div>
-        <div *ngIf="!contactsLoading && !contactsError && !localContacts.length" class="empty-contacts"><h2>Keep your people close.</h2><p>Add family, a trusted neighbor, or your barangay office.</p></div>
-        <article *ngFor="let contact of localContacts" class="hotline"><div><h2>{{ contact.name }}</h2><p>{{ contact.description }}</p><strong>{{ contact.number }}</strong></div><div class="contact-actions"><button (click)="handleCall(contact)" [attr.aria-label]="'Call '+contact.name"><ion-icon name="call-outline"></ion-icon><span>Call</span></button><button class="remove-contact" (click)="handleDeleteContact(contact.id)" [attr.aria-label]="'Delete '+contact.name"><ion-icon name="trash-outline"></ion-icon></button></div></article>
-        <button class="add-contact" (click)="openAddModal()"><ion-icon name="add"></ion-icon> Add a contact</button>
-      </ng-container>
-    </section>
+    <a class="places-link" [routerLink]="publicView ? '/places' : '/map'"><span class="places-icon"><ion-icon name="map-outline"></ion-icon></span><span>Find nearby emergency places<small>Fire stations, rescue teams, hospitals and local offices</small></span><ion-icon name="chevron-forward"></ion-icon></a>
+
+    <div class="help-tabs" role="tablist" aria-label="Contact lists" [class.second]="activeSegment==='local'">
+      <button role="tab" id="tab-public" aria-controls="panel-public" [attr.aria-selected]="activeSegment==='government'" (click)="selectSegment('government')">Public hotlines</button>
+      <button role="tab" id="tab-mine" aria-controls="panel-mine" [attr.aria-selected]="activeSegment==='local'" (click)="selectSegment('local')">My contacts @if (localContacts.length) {<span class="count">{{localContacts.length}}</span>}</button>
+      <span class="tab-line" aria-hidden="true"></span>
+    </div>
+
+    @if (activeSegment === 'government') {
+      <section class="hotline-list panel" id="panel-public" role="tabpanel" aria-labelledby="tab-public">
+        @for (contact of governmentContacts; track contact.id) {
+          <article class="hotline"><div><h2>{{ contact.name }}</h2>@if (contact.description) {<p>{{ contact.description }}</p>}<strong>{{ contact.number }}</strong></div><button class="call-button" (click)="handleCall(contact)" [attr.aria-label]="'Call '+contact.name"><ion-icon name="call-outline"></ion-icon><span>Call</span></button></article>
+        }
+      </section>
+    } @else {
+      <section class="hotline-list panel" id="panel-mine" role="tabpanel" aria-labelledby="tab-mine">
+        @if (publicView) {
+          <div class="empty-contacts"><span class="empty-icon"><ion-icon name="heart-outline"></ion-icon></span><h2>Your people, close at hand.</h2><p>Sign in to view and save your personal emergency contacts.</p><a routerLink="/login" class="text-action">Sign in</a></div>
+        } @else {
+          @if (contactsLoading && !localContacts.length) {
+            <div class="contact-skeletons" role="status"><span class="sr-only">Loading your contacts…</span>@for (row of [1,2]; track row) {<div class="hotline" aria-hidden="true"><div class="ia-skeleton-stack"><span class="ia-skeleton" style="width:55%;height:16px"></span><span class="ia-skeleton" style="width:35%;height:18px"></span></div><span class="ia-skeleton" style="width:76px;height:46px"></span></div>}</div>
+          }
+          @if (contactsError) {<div class="status-message" role="alert">Couldn't load your contacts. <button (click)="ionViewWillEnter()">Try again</button></div>}
+          @if (!contactsLoading && !contactsError && !localContacts.length) {
+            <div class="empty-contacts"><span class="empty-icon"><ion-icon name="people-outline"></ion-icon></span><h2>Keep your people close.</h2><p>Add family, a trusted neighbor, or your barangay office so they’re one tap away.</p></div>
+          }
+          @for (contact of localContacts; track contact.id) {
+            <article class="hotline contact-row"><div><h2>{{ contact.name }}</h2>@if (contact.description) {<p>{{ contact.description }}</p>}<strong>{{ displayNumber(contact.number) }}</strong></div><div class="contact-actions"><button class="call-button" (click)="handleCall(contact)" [attr.aria-label]="'Call '+contact.name"><ion-icon name="call-outline"></ion-icon><span>Call</span></button><button class="remove-contact" (click)="handleDeleteContact(contact)" [attr.aria-label]="'Remove '+contact.name"><ion-icon name="trash-outline"></ion-icon></button></div></article>
+          }
+          <button class="add-contact" (click)="openAddModal()"><ion-icon name="add"></ion-icon> Add a contact</button>
+        }
+      </section>
+    }
     <aside class="call-guidance"><h2>When you reach an operator</h2><p>Share your location and what happened. Answer their questions and follow their instructions.</p><p class="quiet">Public numbers are included in the app. Calling needs phone service; your saved contacts need an internet connection.</p></aside>
   </main>
-  <!-- Add Contact Modal -->
-  <div *ngIf="showAddModal" role="dialog" aria-modal="true" aria-label="Add local contact" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50 animate-in fade-in">
-    <div class="bg-white w-full rounded-t-3xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom">
-      <div class="px-6 py-6">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-gray-900 m-0">Add Local Contact</h2>
-          <button (click)="closeAddModal()" aria-label="Close contact form"
-            class="w-10 h-10 rounded-xl bg-gray-100 flex items-center hover:bg-gray-200 transition-colors justify-center border-0">
-            <ion-icon name="close" class="text-gray-600 text-xl"></ion-icon>
-          </button>
-        </div>
 
-        <form (ngSubmit)="handleAddContact($event)" class="space-y-4">
-          <div>
-            <label class="block text-sm text-gray-700 mb-2">Contact Name <span class="text-rose-500">*</span></label>
-            <input type="text" [(ngModel)]="newContact.name" name="name"
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-              placeholder="e.g., Barangay Hall" />
-          </div>
-
-          <div>
-            <label class="block text-sm text-gray-700 mb-2">Phone Number <span class="text-rose-500">*</span></label>
-            <input type="tel" [(ngModel)]="newContact.number" name="number"
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-              placeholder="(02) 1234-5678" />
-          </div>
-
-          <div>
-            <label class="block text-sm text-gray-700 mb-2">Description <span
-                class="text-xs text-gray-500">(optional)</span></label>
-            <input type="text" [(ngModel)]="newContact.description" name="description"
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-              placeholder="e.g., Local emergency response" />
-          </div>
-
-          <button type="button" (click)="handleAddContact($event)" [disabled]="saving"
-            class="w-full bg-linear-to-r from-blue-600 to-cyan-500 text-white py-4 rounded-xl hover:shadow-lg transition-all border-0">
-            {{ saving ? "Saving…" : "Save contact" }}
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
+  <ion-modal class="ia-sheet" [isOpen]="showAddModal" [initialBreakpoint]="1" [breakpoints]="[0, 1]" (didDismiss)="closeAddModal()">
+    <ng-template>
+      <div class="ia-sheet-head"><div><h2>Add a contact</h2><p>Saved to your account so you can reach them quickly.</p></div><button type="button" class="ia-close" (click)="closeAddModal()" aria-label="Close"><ion-icon name="close"></ion-icon></button></div>
+      <form class="ia-sheet-scroll" (ngSubmit)="handleAddContact($event)" novalidate>
+        <label class="ia-field">Name<input type="text" name="name" autocomplete="off" maxlength="150" placeholder="e.g., Barangay Hall" [(ngModel)]="newContact.name" (ngModelChange)="formErrors.name=''" [attr.aria-invalid]="!!formErrors.name">@if (formErrors.name) {<span class="ia-field-error" role="alert">{{formErrors.name}}</span>}</label>
+        <label class="ia-field">Phone number<input type="tel" name="number" inputmode="tel" autocomplete="off" maxlength="32" placeholder="0917 123 4567 or (02) 1234-5678" [(ngModel)]="newContact.number" (ngModelChange)="formErrors.number=''" [attr.aria-invalid]="!!formErrors.number">@if (formErrors.number) {<span class="ia-field-error" role="alert">{{formErrors.number}}</span>}</label>
+        <label class="ia-field">Note <span>optional</span><input type="text" name="description" maxlength="200" placeholder="e.g., Our purok leader" [(ngModel)]="newContact.description"></label>
+        <button type="submit" class="ia-button" [disabled]="saving">{{ saving ? 'Saving…' : 'Save contact' }}</button>
+      </form>
+    </ng-template>
+  </ion-modal>
 </ion-content>

@@ -1,202 +1,171 @@
 @use "./app/pages/study-system";
 
-
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Global styles applied across the app. These also import Ionic’s base styles.
- */
-
-/* Core CSS required for Ionic components to work properly */
+/* Ionic core and optional utilities */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/* Dark mode palette (auto based on system) */
-
-
-/* ✅ Local Poppins Fonts */
-@font-face {
-  font-family: 'Poppins';
-  src: url('/assets/fonts/Poppins-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('/assets/fonts/Poppins-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('/assets/fonts/Poppins-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-}
-
-:root {
-  --ion-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-}
-
-body,
-ion-content,
-ion-text,
-ion-label,
-ion-title,
-ion-button,
-ion-input {
+/* One typeface everywhere: the phone's own font (Roboto on Android). */
+body, ion-content, ion-text, ion-label, ion-title, ion-button, ion-input, ion-alert, ion-toast {
   font-family: var(--ion-font-family) !important;
 }
 
-/* ===== CUSTOM ALERT STYLE ===== */
-ion-alert.custom-alert {
-  --background: #ffffff;
-  --min-width: 280px;
-  --max-width: 90%;
-  --border-radius: 18px;
-  --box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
-  --color: #142850;
-  --backdrop-opacity: 0.4;
-  font-family: 'Poppins', sans-serif;
-  text-align: center;
-}
-
-ion-alert.custom-alert .alert-head {
-  text-align: center;
-  color: #14354f;
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin-bottom: 6px;
-}
-
-ion-alert.custom-alert .alert-message {
-  color: #6b7280;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-ion-alert.custom-alert .alert-button-group {
-  justify-content: center;
-  align-items: center;
-  margin-top: 12px;
-  gap: 10px;
-}
-
-ion-alert.custom-alert button.alert-button {
-  font-weight: 600;
-  border-radius: 10px;
-  padding: 10px 20px;
-  min-width: 110px;
-  height: 42px;
-  text-transform: none;
-  letter-spacing: 0.3px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-ion-alert.custom-alert button.alert-button.alert-button-confirm {
-  background: #1b6457;
-  color: #ffffff;
-  border: none;
-}
-
-ion-alert.custom-alert button.alert-button.alert-button-cancel {
-  background: #f8fafc;
-  color: #334155;
-  border: 1px solid #cbd5e1;
-}
-
-ion-alert.custom-alert button.alert-button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-}
-
-ion-alert.custom-alert button.alert-button .alert-button-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* === Global Safe Area + Layout Stability === */
-html,
-body,
-ion-app,
-ion-content {
+/* === Safe areas and layout stability === */
+html, body, ion-app, ion-content {
   height: 100%;
   --ion-safe-area-top: env(safe-area-inset-top);
   --ion-safe-area-bottom: env(safe-area-inset-bottom);
 }
-
-/* === Basic tab bar background (doesn't affect floating custom one) === */
-ion-tab-bar {
-  padding-bottom: env(safe-area-inset-bottom);
-  background: #ffffff;
-  border-top: 1px solid #e0e0e0;
-  z-index: 5;
-}
-
-/* === Ensure page content isn't blocked by tab bar === */
-ion-content {
-  --padding-bottom: 20px;
-}
-
-:root { --ion-color-primary:#1b6457; --ion-color-primary-rgb:27,100,87; --ion-color-primary-contrast:#ffffff; --ion-color-primary-shade:#18584d; --ion-color-primary-tint:#327466; --ion-text-color:#173d49; --ion-background-color:#f5f7f8; }
-button, a, input { -webkit-tap-highlight-color:transparent; }
-button { font:inherit; cursor:pointer; }
-button:disabled { opacity:.55; cursor:default; }
-button:focus-visible, a:focus-visible, [role="button"]:focus-visible, [role="radio"]:focus-visible { outline:3px solid #278574; outline-offset:3px; }
-input { font-size:16px; }
-h1,h2,h3,h4,p { overflow-wrap:break-word; }
-.page-heading { background:#173d49 !important; border-radius:0 !important; box-shadow:none !important; padding:30px 24px !important; color:white; }
-.page-heading h1 { font-size:28px; font-weight:650; margin:0 0 7px; line-height:1.25; }
-.page-heading p { color:#d3e6e8 !important; font-size:14px; line-height:1.6; }
-.page-heading > .flex > .w-12 { display:none; }
-.page-body { max-width:900px; width:100%; margin-left:auto; margin-right:auto; }
-.page-intro { max-width:850px; margin:22px auto 0; padding:0 24px; font-size:14px; line-height:1.6; color:#526976; }
-.page-intro a { display:inline-flex; min-height:44px; align-items:center; gap:8px; font-weight:600; color:#1b6457; }
-.status-message { background:#fff5df; color:#70521c; padding:16px; font-size:14px; line-height:1.6; border-radius:8px; margin:12px 0; }
-.status-message button { color:#70521c; text-decoration:underline; font-weight:600; min-height:44px; background:transparent; }
-ion-alert.custom-alert button.alert-button { min-height:44px; height:auto; }
-ion-toast { --max-width:520px; }
-@media(min-width:700px) { .page-heading { padding-left:max(32px,calc((100% - 820px)/2)) !important; padding-right:max(32px,calc((100% - 820px)/2)) !important; }.page-heading h1{font-size:32px} }
-@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; } }
+ion-content { --padding-bottom: 20px; }
 /* Reserve the floating navigation and system gesture areas in every signed-in view. */
-app-tabs ion-content { --padding-bottom:calc(100px + env(safe-area-inset-bottom)) !important; }
-/* Full-screen dialogs take priority over navigation. */
-app-tabs:has([aria-modal="true"]) ion-tab-bar { visibility:hidden; pointer-events:none; }
-.profile-save { background:#1b6457; color:white; padding:14px 22px; border-radius:9px; min-height:48px; font-weight:600; }
-button.w-10.h-10 { min-width:44px; min-height:44px; }
+app-tabs ion-content { --padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important; }
+/* One inset around the router, including fixed headers inside dialogs. On older
+   WebViews Capacitor consumes the native inset and supplies zero here. */
+ion-app > ion-router-outlet { top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px)); height: auto; bottom: 0; }
+/* Sheets and dialogs take priority over the floating navigation. */
+app-tabs:has([aria-modal="true"]) ion-tab-bar { visibility: hidden; pointer-events: none; }
+
+/* === Base elements === */
+button, a, input, select, summary { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; cursor: pointer; }
+button:disabled { opacity: .55; cursor: default; }
+button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:focus-visible, [role="radio"]:focus-visible, [role="tab"]:focus-visible {
+  outline: 3px solid #278574; outline-offset: 3px;
+}
+input { font-size: 16px; }
+h1, h2, h3, h4, p { overflow-wrap: break-word; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Press feedback. `scale` composes with any transform a component already uses. */
+:where(button, a, [role="button"], summary, label.photo-pick):not(:disabled) {
+  transition: scale var(--ia-dur-1) var(--ia-ease), background-color var(--ia-dur-2) var(--ia-ease), border-color var(--ia-dur-2) var(--ia-ease), color var(--ia-dur-2) var(--ia-ease), box-shadow var(--ia-dur-2) var(--ia-ease);
+}
+:where(button, a.primary, a.secondary, a.places-link, a.auth-help, [role="button"]):not(:disabled):active { scale: .97; }
+
+/* === Shared page parts === */
+.page-heading { background: var(--ia-ink) !important; border-radius: 0 !important; box-shadow: none !important; padding: 30px 24px !important; color: white; }
+.page-heading h1 { font-size: 28px; font-weight: 650; margin: 0 0 7px; line-height: 1.25; }
+.page-heading p { color: #d3e6e8 !important; font-size: 14px; line-height: 1.6; }
+.page-body { max-width: 900px; width: 100%; margin-left: auto; margin-right: auto; }
+.status-message { background: #fff5df; color: var(--ia-amber-ink); padding: 16px; font-size: 14px; line-height: 1.6; border-radius: 8px; margin: 12px 0; animation: ia-rise var(--ia-dur-2) var(--ia-ease) both; }
+.status-message button { color: var(--ia-amber-ink); text-decoration: underline; font-weight: 600; min-height: 44px; background: transparent; }
+@media(min-width:700px) {
+  .page-heading { padding-left: max(32px, calc((100% - 820px)/2)) !important; padding-right: max(32px, calc((100% - 820px)/2)) !important; }
+  .page-heading h1 { font-size: 32px; }
+}
+
+/* === Motion === */
+@keyframes ia-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes ia-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ia-pop { 0% { scale: .96; } 55% { scale: 1.025; } 100% { scale: 1; } }
+@keyframes ia-from-right { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes ia-from-left { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes ia-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes ia-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes ia-check { 0% { scale: 0; } 60% { scale: 1.2; } 100% { scale: 1; } }
+
+/* Sections ease up one after another when a screen first appears. */
+.ia-stagger > * { animation: ia-rise var(--ia-dur-3) var(--ia-ease) both; }
+.ia-stagger > :nth-child(2) { animation-delay: 45ms; }
+.ia-stagger > :nth-child(3) { animation-delay: 90ms; }
+.ia-stagger > :nth-child(4) { animation-delay: 135ms; }
+.ia-stagger > :nth-child(5) { animation-delay: 180ms; }
+.ia-stagger > :nth-child(6) { animation-delay: 225ms; }
+.ia-stagger > :nth-child(n+7) { animation-delay: 270ms; }
+.ia-forward { animation: ia-from-right var(--ia-dur-3) var(--ia-ease) both; }
+.ia-back { animation: ia-from-left var(--ia-dur-3) var(--ia-ease) both; }
+.ia-bar-fill { transform-origin: left center; animation: ia-fill 900ms var(--ia-ease) both; animation-delay: 120ms; }
+
+/* Numbers that count up to their value (percentages, scores). */
+@property --ia-count { syntax: '<integer>'; inherits: false; initial-value: 0; }
+@keyframes ia-count { from { --ia-count: 0; } }
+.ia-count { --ia-count: var(--to, 0); counter-reset: ia-count var(--ia-count); animation: ia-count 1100ms var(--ia-ease) both; animation-delay: 120ms; font-variant-numeric: tabular-nums; }
+.ia-count::before { content: counter(ia-count); }
+
+/* Loading placeholders */
+.ia-skeleton { display: block; border-radius: 8px; background: linear-gradient(100deg, #e4ebed 40%, #f3f6f7 50%, #e4ebed 60%) 0 0 / 300% 100%; animation: ia-shimmer 1.4s linear infinite; }
+.ia-skeleton.on-dark { background-image: linear-gradient(100deg, #2a5260 40%, #3a6574 50%, #2a5260 60%); }
+.ia-skeleton-stack { display: grid; gap: 10px; }
+
+@media(prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* === Dialogs (ion-alert) === */
+ion-alert.custom-alert {
+  --background: #ffffff;
+  --min-width: 280px;
+  --max-width: min(360px, calc(100vw - 32px));
+  --backdrop-opacity: .45;
+  --color: var(--ia-ink);
+  text-align: center;
+}
+ion-alert.custom-alert .alert-wrapper { border-radius: var(--ia-radius-l); box-shadow: var(--ia-shadow-2); }
+ion-alert.custom-alert .alert-head { padding: 24px 22px 6px; text-align: center; }
+ion-alert.custom-alert .alert-title { color: var(--ia-ink); font-weight: 700; font-size: 19px; line-height: 1.3; }
+ion-alert.custom-alert .alert-message { padding: 4px 22px 18px; color: var(--ia-ink-soft); font-size: 15px; line-height: 1.55; text-align: center; max-height: none; }
+ion-alert.custom-alert .alert-button-group { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; padding: 4px 18px 18px; }
+ion-alert.custom-alert button.alert-button {
+  margin: 0; width: 100%; min-width: 0; min-height: 48px; height: auto; padding: 10px 12px;
+  border-radius: 12px; border: 1px solid transparent; font-size: 15px; font-weight: 650; letter-spacing: 0; text-transform: none;
+  background: var(--ia-teal); color: #fff;
+}
+ion-alert.custom-alert .alert-button-group button.alert-button .alert-button-inner { justify-content: center; text-align: center; }
+ion-alert.custom-alert button.alert-button.alert-button-cancel { background: #f3f6f6; color: #334b55; border-color: #cfdadb; }
+ion-alert.custom-alert button.alert-button.alert-button-danger { background: var(--ia-red); color: #fff; }
+ion-alert.custom-alert.alert-emergency .alert-head { padding-top: 26px; }
+ion-alert.custom-alert.alert-emergency .alert-title { color: var(--ia-red-strong); }
+
+/* === Toasts === */
+ion-toast { --max-width: 520px; }
+ion-toast.ia-toast { --border-radius: var(--ia-radius-m); --box-shadow: var(--ia-shadow-2); --start: 12px; --end: 12px; font-size: 14px; }
+
+/* === Bottom sheets (ion-modal) sized to their content === */
+ion-modal.ia-sheet {
+  --height: auto;
+  --border-radius: 24px;
+  --background: #ffffff;
+  --backdrop-opacity: .42;
+  --max-width: 640px;
+}
+ion-modal.ia-sheet .ion-page { position: relative; display: block; contain: content; }
+ion-modal.ia-sheet .ia-sheet-scroll { max-height: min(78vh, 720px); max-height: min(78dvh, 720px); overflow-y: auto; overscroll-behavior: contain; padding: 4px 22px calc(24px + env(safe-area-inset-bottom)); color: var(--ia-ink); }
+.ia-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 22px 14px; color: var(--ia-ink); }
+.ia-sheet-head h2 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -.02em; line-height: 1.3; }
+.ia-sheet-head p { margin: 4px 0 0; font-size: 13px; color: var(--ia-ink-soft); line-height: 1.5; }
+.ia-close { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--ia-line); background: #f6f8f8; color: var(--ia-ink); font-size: 22px; }
+
+/* Shared form fields inside sheets */
+.ia-field { display: block; margin: 0 0 16px; font-size: 13px; font-weight: 650; color: #294c59; }
+.ia-field > span:not(.ia-field-error) { font-weight: 400; color: var(--ia-ink-muted); margin-left: 6px; font-size: 12px; }
+.ia-field input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; min-height: 50px; padding: 12px 14px; border: 1px solid var(--ia-line-strong); border-radius: 12px; background: #fafcfc; color: var(--ia-ink); font: 400 16px/1.4 var(--ion-font-family); transition: border-color var(--ia-dur-2) var(--ia-ease), box-shadow var(--ia-dur-2) var(--ia-ease), background-color var(--ia-dur-2); }
+.ia-field input:focus { outline: none; border-color: var(--ia-teal); background: #fff; box-shadow: 0 0 0 3px rgba(39, 133, 116, .22); }
+.ia-field input[aria-invalid="true"] { border-color: var(--ia-red); }
+.ia-field-error { display: block; margin-top: 6px; color: var(--ia-red-strong); font-size: 12px; font-weight: 500; animation: ia-rise var(--ia-dur-2) var(--ia-ease) both; }
+.ia-button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 18px; border: 0; border-radius: 12px; background: var(--ia-teal); color: #fff; font-size: 15px; font-weight: 650; }
+.ia-button.secondary { background: #fff; color: var(--ia-teal); border: 1px solid #b8cfc6; }
 
 /* Leaflet creates popup elements outside Angular's component style scope. */
 .impact-place-popup .leaflet-popup-content-wrapper{border-radius:18px;box-shadow:0 8px 28px #142b3930;border:1px solid #d8e3e8;padding:0;overflow:hidden;}
 .impact-place-popup .leaflet-popup-content{margin:0;width:min(280px,calc(100vw - 74px))!important;max-width:calc(100vw - 74px);}
 .impact-place-popup .leaflet-popup-content.leaflet-popup-scrolled{border:0;}
 .impact-place-popup a.leaflet-popup-close-button{top:4px;right:4px;width:44px;height:44px;line-height:44px;font-size:25px;color:#506977;border-radius:50%;}
-.facility-popup{padding:14px;font-family:var(--ion-font-family);animation:facility-popup-enter 160ms ease-out;}
+.facility-popup{padding:14px;font-family:var(--ion-font-family);animation:facility-popup-enter 200ms var(--ia-ease) both;}
 .facility-popup .popup-category{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:750;padding-right:28px;}.popup-category span{display:grid;place-items:center;width:20px;height:20px;flex-shrink:0;border-radius:6px;color:white;font-size:12px;}
 .facility-popup h2{font-size:15px;font-weight:700;color:#213b49;line-height:1.4;margin:12px 14px 8px 0;overflow-wrap:anywhere;}.facility-popup p{margin:7px 0;line-height:1.55;}.facility-popup .popup-address{font-size:12px;color:#506976;}.facility-popup .popup-contact{font-size:13px;color:#214f65;font-weight:650;}.facility-popup .popup-note{font-size:11px;color:#61757f;}.popup-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px;}.popup-actions button{min-height:44px;flex:1 1 90px;border:1px solid #bdd6cc;border-radius:10px;background:#e9f3ee;color:#205b4e;font-size:12px;font-weight:700;cursor:pointer;}.popup-actions .popup-call{background:#236452;border-color:#236452;color:white;}.facility-popup a.popup-source{display:inline-flex;align-items:center;min-height:44px;margin-right:14px;font-size:11px;color:#285e7b;text-underline-offset:3px;}.facility-popup .popup-footnote{font-size:10px;color:#687e89;margin:0;}.facility-popup button:focus-visible,.facility-popup a:focus-visible{outline:3px solid #4b92b1;outline-offset:2px;}
-@keyframes facility-popup-enter{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
-@media(prefers-reduced-motion:reduce){.facility-popup{animation:none;}}
+@keyframes facility-popup-enter{from{opacity:0;transform:translateY(6px) scale(.98);}to{opacity:1;transform:none;}}
+.leaflet-marker-icon.custom-marker{transition:filter var(--ia-dur-2) var(--ia-ease);}
 
-/* One inset around the router, including fixed headers inside dialogs. On older
-   WebViews Capacitor consumes the native inset and supplies zero here. */
-ion-app > ion-router-outlet {top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));height:auto;bottom:0;}
+/* Sign-in and sign-up fields: one bordered box per field, with its error message below it. */
+ion-input.input-box .input-wrapper { min-height: 66px; border: 1px solid #c8d6d6; border-radius: 8px; background: #f8faf9; transition: border-color var(--ia-dur-2) var(--ia-ease), box-shadow var(--ia-dur-2) var(--ia-ease); }
+ion-input.input-box.has-focus .input-wrapper { border-color: #278574; box-shadow: 0 0 0 3px rgba(39, 133, 116, .22); }
+ion-input.input-box.ion-invalid.ion-touched .input-wrapper { border-color: #c4554c; }
+ion-input.input-box .input-bottom { border-top: 0; padding: 6px 2px 0; }
+ion-input.input-box .input-bottom .error-text { font-size: 12px; font-weight: 500; color: var(--ia-red-strong); }

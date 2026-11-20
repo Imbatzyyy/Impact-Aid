@@ -1,2 +1,78 @@
-// For information on how to create your own theme, please see:
-// http://ionicframework.com/docs/theming/
+// Impact Aid design tokens. Every screen draws its colours, corners, shadows and
+// motion from here so the app reads as one calm, consistent system.
+:root {
+  /* Ink and surfaces */
+  --ia-ink: #173d49;
+  --ia-ink-soft: #526976;
+  --ia-ink-muted: #687d86;
+  --ia-bg: #f5f7f8;
+  --ia-surface: #ffffff;
+  --ia-line: #dce4e7;
+  --ia-line-strong: #c3d3d3;
+
+  /* Brand teal */
+  --ia-teal: #1b6457;
+  --ia-teal-strong: #144d43;
+  --ia-teal-soft: #e5f0eb;
+  --ia-teal-tint: #f2f8f5;
+  --ia-teal-bright: #a1d7cb;
+
+  /* Emergency red, used only for help and destructive actions */
+  --ia-red: #ad332b;
+  --ia-red-strong: #8c251e;
+  --ia-red-soft: #fbe7e3;
+  --ia-red-tint: #fff8f6;
+
+  /* Warm accents for achievement and notices */
+  --ia-gold: #c08a1e;
+  --ia-gold-soft: #fbf1d9;
+  --ia-amber-ink: #70521c;
+
+  /* Shape */
+  --ia-radius-s: 10px;
+  --ia-radius-m: 14px;
+  --ia-radius-l: 20px;
+  --ia-radius-pill: 999px;
+  --ia-shadow-1: 0 1px 2px rgba(18, 48, 58, .06), 0 2px 8px rgba(18, 48, 58, .05);
+  --ia-shadow-2: 0 12px 34px rgba(18, 48, 58, .16);
+
+  /* Motion: three durations and two curves */
+  --ia-dur-1: 140ms;
+  --ia-dur-2: 240ms;
+  --ia-dur-3: 420ms;
+  --ia-ease: cubic-bezier(.2, .7, .2, 1);
+  --ia-ease-spring: cubic-bezier(.34, 1.36, .64, 1);
+
+  /* Ionic theme colours mapped to the palette (toasts, spinners, buttons). */
+  --ion-color-primary: #1b6457;
+  --ion-color-primary-rgb: 27, 100, 87;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #18584d;
+  --ion-color-primary-tint: #327466;
+
+  --ion-color-success: #1f5f4f;
+  --ion-color-success-rgb: 31, 95, 79;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #1b5446;
+  --ion-color-success-tint: #356f61;
+
+  --ion-color-warning: #8a5d14;
+  --ion-color-warning-rgb: 138, 93, 20;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #7a5212;
+  --ion-color-warning-tint: #966d2c;
+
+  --ion-color-danger: #ad332b;
+  --ion-color-danger-rgb: 173, 51, 43;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #982d26;
+  --ion-color-danger-tint: #b54740;
+
+  --ion-text-color: #173d49;
+  --ion-background-color: #f5f7f8;
+  --ion-font-family: Roboto, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+}

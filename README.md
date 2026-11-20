@@ -10,7 +10,7 @@ A Philippine disaster preparedness app for Android. Find a nearby response facil
 | --- | --- |
 | Emergency help | Open public emergency numbers and the places directory without an account. The Call button opens your dialer. |
 | Places | Find hospitals, police, fire stations, rescue/DRRM teams, local government offices and mapped evacuation facilities. See the phone’s reported location accuracy and open a pin for its address, available contacts and source. |
-| Learn | Read six illustrated guides in sections or watch their bundled videos. Return to your saved section and explicitly mark a guide complete. |
+| Learn | Read six illustrated guides in sections or watch their videos. A 480p copy of each video is saved in the app and plays offline; online, choose 144p or 240p to save data, or 720p or 1080p for a sharper picture. Return to your saved section and explicitly mark a guide complete. |
 | Practice | Take 15 questions from each topic’s bank of 50. Both question and choice order shuffle. Leave and resume on the same installation. |
 | My Profile | Edit your name, username, optional age, mobile number and Philippine address; choose and frame a private profile photo with circular cropping. |
 | My Progress | See completed guides, latest quiz scores, recent attempts, badges and a downloadable course certificate. |
@@ -29,7 +29,7 @@ Choose **Sign in with Google** or **Sign up with Google**. Supabase creates a ne
 
 ## Your profile and a calmer start
 
-The Impact Aid shield is the Android app icon. A five-second pulsing splash leads into Home (or sign-in for a signed-out user), with immediate access to emergency help. Tap your Home avatar for My Profile. Photos have a circular preview with drag, pinch, zoom and rotation. Address fields offer suggestions as you type, and your chosen photo appears on Home after saving. Profile details and photos are private to your account. [Profile, address and recovery details](docs/PROFILE-AND-RECOVERY.md).
+The Impact Aid shield is the Android app icon. A short pulsing splash (about two seconds) leads into Home (or sign-in for a signed-out user), with immediate access to emergency help. Tap your Home avatar for My Profile. Photos have a circular preview with drag, pinch, zoom and rotation. Address fields offer suggestions as you type, and your chosen photo appears on Home after saving. Profile details and photos are private to your account. [Profile, address and recovery details](docs/PROFILE-AND-RECOVERY.md).
 
 | My Profile | A calmer welcome |
 | --- | --- |
@@ -56,7 +56,7 @@ To build Android, set `JAVA_HOME` to JDK 21 and run `npm run build:android`. The
 
 Supabase handles email verification, password recovery, profiles, personal contacts, reading positions and quiz records. SQL migrations and email templates are in [supabase](supabase/). The APK uses a publishable key; privileged credentials and signing materials are excluded from this repository. Resend delivers account mail through Supabase SMTP.
 
-The [17,294-place directory](docs/EMERGENCY-DIRECTORY.md) and lesson media ship with the APK. Map imagery, directions, account data, semester assignments and progress sync need internet. Quiz answers remain on this installation until a submission succeeds. Directory coverage and contact details can be incomplete; confirm shelter activation and access with the local authority. Impact Aid does not dispatch responders or report live road or shelter conditions.
+The [17,294-place directory](docs/EMERGENCY-DIRECTORY.md), lesson images and 480p [lesson videos](docs/LESSON-VIDEOS.md) ship with the APK. Other video qualities, map imagery, directions, account data, semester assignments and progress sync need internet. Quiz answers remain on this installation until a submission succeeds. Directory coverage and contact details can be incomplete; confirm shelter activation and access with the local authority. Impact Aid does not dispatch responders or report live road or shelter conditions.
 
 ### Frame your photo
 

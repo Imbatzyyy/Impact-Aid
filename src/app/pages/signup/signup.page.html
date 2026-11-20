@@ -1,5 +1,5 @@
 <ion-content class="auth-content">
-  <div class="auth-shell">
+  <div class="auth-shell ia-stagger">
     <header class="auth-brand"><img src="assets/impact-shield.png" alt="" /><div>Impact Aid<span>Be informed. Be prepared.</span></div></header>
     <a class="auth-back" routerLink="/login"><ion-icon name="arrow-back-outline"></ion-icon> Back to sign in</a>
     <main class="auth-card">
@@ -8,15 +8,24 @@
       <p class="auth-intro">Save your learning progress and personal emergency contacts. Choose Google or create an account with your email.</p>
       <button type="button" class="google-button" (click)="google.start()" [disabled]="loading||google.busy"><img src="assets/google-g.svg" alt=""><span>{{google.busy?'Opening Google…':'Sign up with Google'}}</span></button>
       <p class="google-help">Use your Google account. No separate Impact Aid password needed.</p>
-      @if(google.busy){<button class="text-button" (click)="google.cancel()">Cancel Google sign-in</button>}
+      @if (google.busy) {<button class="text-button" (click)="google.cancel()">Cancel Google sign-in</button>}
       <div class="auth-divider"><span>or use email</span></div>
-      @if(google.message){<p class="auth-notice" role="status">{{google.message}}</p>}
-      <ion-input label="Your name" labelPlacement="stacked" type="text" autocomplete="name" placeholder="What should we call you?" class="input-box" [(ngModel)]="username"></ion-input>
-      <ion-input label="Email address" labelPlacement="stacked" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" class="input-box" [(ngModel)]="email"></ion-input>
-      <div class="password-row"><ion-input label="Password" labelPlacement="stacked" class="input-box" [type]="passwordVisible ? 'text' : 'password'" autocomplete="new-password" placeholder="At least 6 characters" [(ngModel)]="password"></ion-input><button type="button" class="eye-btn" [attr.aria-label]="passwordVisible ? 'Hide passwords' : 'Show passwords'" (click)="togglePassword()"><ion-icon [name]="passwordVisible ? 'eye-outline' : 'eye-off-outline'"></ion-icon></button></div>
-      <ion-input label="Confirm password" labelPlacement="stacked" class="input-box" [type]="passwordVisible ? 'text' : 'password'" autocomplete="new-password" placeholder="Enter your password again" [(ngModel)]="confirmPassword"></ion-input>
-      <ion-input label="Address (optional)" labelPlacement="stacked" type="text" autocomplete="street-address" placeholder="Your city or barangay" class="input-box" [(ngModel)]="address"></ion-input>
-      <ion-button expand="block" class="auth-submit" (click)="createAccount()" [disabled]="loading||google.busy">{{ loading ? 'Creating account…' : 'Create account' }}<ion-icon name="arrow-forward-outline" slot="end"></ion-icon></ion-button>
+      @if (google.message) {<p class="auth-notice" role="status">{{google.message}}</p>}
+      <form (ngSubmit)="createAccount()" novalidate>
+        <ion-input label="Your name" labelPlacement="stacked" type="text" name="username" autocomplete="name" placeholder="What should we call you?" class="input-box" [class.ion-invalid]="!!errors.username" [class.ion-touched]="!!errors.username" [errorText]="errors.username" [(ngModel)]="username" (ionInput)="clear('username')"></ion-input>
+        <ion-input label="Email address" labelPlacement="stacked" type="email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com" class="input-box" [class.ion-invalid]="!!errors.email" [class.ion-touched]="!!errors.email" [errorText]="errors.email" [(ngModel)]="email" (ionInput)="clear('email')"></ion-input>
+        <div class="password-row">
+          <ion-input label="Password" labelPlacement="stacked" name="password" class="input-box" [class.ion-invalid]="!!errors.password" [class.ion-touched]="!!errors.password" [errorText]="errors.password" [type]="passwordVisible ? 'text' : 'password'" autocomplete="new-password" placeholder="At least 6 characters" [(ngModel)]="password" (ionInput)="clear('password')"></ion-input>
+          <button type="button" class="eye-btn" [attr.aria-label]="passwordVisible ? 'Hide passwords' : 'Show passwords'" [attr.aria-pressed]="passwordVisible" (click)="togglePassword()"><ion-icon [name]="passwordVisible ? 'eye-off-outline' : 'eye-outline'"></ion-icon></button>
+        </div>
+        @if (password) {
+          <div class="strength" [attr.data-level]="strength" aria-live="polite"><span></span><span></span><span></span><small>{{strength ? 'Password strength: ' + strengthLabel : 'Keep going: at least 6 characters'}}</small></div>
+        }
+        <ion-input label="Confirm password" labelPlacement="stacked" name="confirmPassword" class="input-box" [class.ion-invalid]="!!errors.confirmPassword" [class.ion-touched]="!!errors.confirmPassword" [errorText]="errors.confirmPassword" [type]="passwordVisible ? 'text' : 'password'" autocomplete="new-password" placeholder="Enter your password again" [(ngModel)]="confirmPassword" (ionInput)="clear('confirmPassword')"></ion-input>
+        <p class="field-hint">You can add your address and photo later in My Profile.</p>
+        @if (error) {<p class="auth-error" role="alert"><ion-icon name="alert-circle"></ion-icon>{{error}}</p>}
+        <ion-button type="submit" expand="block" class="auth-submit" [disabled]="loading||google.busy">{{ loading ? 'Creating account…' : 'Create account' }}<ion-icon name="arrow-forward-outline" slot="end"></ion-icon></ion-button>
+      </form>
       <p class="auth-switch">Already have an account? <a routerLink="/login">Sign in</a></p>
     </main>
   </div>
