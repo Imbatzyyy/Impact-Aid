@@ -6,18 +6,18 @@ const mocks = vi.hoisted(() => ({
   resend: vi.fn(), resetPasswordForEmail: vi.fn(), signOut: vi.fn(),
   onAuthStateChange: vi.fn(), unsubscribe: vi.fn(), progressData: vi.fn(),
   checkPermissions: vi.fn(), requestPermissions: vi.fn(), writeFile: vi.fn(), share: vi.fn(),
-  fetch: vi.fn(), listeners: new Set<(event: string) => void>(),
+  fetch: vi.fn(), certificateIssuedOn: vi.fn(), listeners: new Set<(event: string, session?: unknown) => void>(),
 }));
 
 vi.mock('@angular/core', () => ({
   Component: () => (component: unknown) => component,
   ChangeDetectionStrategy: { Eager: 0 },
 }));
-vi.mock('@angular/common', () => ({ CommonModule: class {} }));
+vi.mock('@angular/common', () => ({ CommonModule: class {}, DatePipe: class {}, TitleCasePipe: class {} }));
 vi.mock('@angular/forms', () => ({ FormsModule: class {} }));
 vi.mock('@angular/router', () => ({ Router: class {}, RouterLink: class {} }));
 vi.mock('@ionic/angular', () => ({
-  IonButton: class {}, IonContent: class {}, IonIcon: class {}, IonInput: class {},
+  IonButton: class {}, IonContent: class {}, IonIcon: class {}, IonInput: class {}, IonModal: class {},
   AlertController: class {}, ToastController: class {},
 }));
 vi.mock('ionicons', () => ({ addIcons: vi.fn() }));
@@ -36,7 +36,7 @@ vi.mock('../src/app/services/backend', () => ({
     resend: mocks.resend, resetPasswordForEmail: mocks.resetPasswordForEmail,
     signOut: mocks.signOut, onAuthStateChange: mocks.onAuthStateChange,
   } },
-  progressData: mocks.progressData,
+  progressData: mocks.progressData, certificateIssuedOn: mocks.certificateIssuedOn,
   topics: ['earthquake', 'tsunami', 'typhoon', 'flood', 'landslide', 'volcanic eruption'],
 }));
 
@@ -93,6 +93,7 @@ beforeEach(() => {
   mocks.checkPermissions.mockResolvedValue({ publicStorage: 'granted' });
   mocks.writeFile.mockResolvedValue({ uri: 'file:///synthetic-certificate.png' });
   mocks.share.mockResolvedValue(undefined);
+  mocks.certificateIssuedOn.mockResolvedValue('2026-11-01T02:00:00Z');
 });
 
 afterEach(() => {
@@ -159,7 +160,7 @@ describe('local logout', () => {
     mocks.signOut.mockResolvedValue({ error: new Error('Storage failure') });
     await page.handleLogout();
     expect(router.navigateByUrl).not.toHaveBeenCalled();
-    expect(toast.create).toHaveBeenCalledWith(expect.objectContaining({ message: 'Logout failed. Try again.' }));
+    expect(toast.create).toHaveBeenCalledWith(expect.objectContaining({ message: 'Sign out failed. Try again.' }));
     expect(mocks.unsubscribe).toHaveBeenCalledTimes(1);
   });
 
@@ -170,7 +171,7 @@ describe('local logout', () => {
     mocks.getSession.mockResolvedValue({ data: { session: null }, error: null });
     await page.handleLogout();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/login', { replaceUrl: true });
-    expect(toast.create).toHaveBeenCalledWith(expect.objectContaining({ message: 'Logged out successfully', color: 'success' }));
+    expect(toast.create).toHaveBeenCalledWith(expect.objectContaining({ message: 'You’re signed out. See you soon.', color: 'success' }));
   });
 });
 
@@ -224,18 +225,55 @@ describe('progress and certificate freshness', () => {
     expect(page.loadError).toBe(false);
   });
 
-  it.each(['SIGNED_OUT', 'SIGNED_IN'])('invalidates a pending account load on %s', async event => {
+  it('invalidates a pending account load on SIGNED_OUT', async () => {
     const page = progressPage();
+    page.ngOnInit();
     const pending = deferred<ReturnType<typeof completedProgress>>();
     mocks.progressData.mockReturnValueOnce(pending.promise);
-    page.ngOnInit();
-    mocks.listeners.forEach(callback => callback(event));
+    const load = page.ionViewWillEnter();
+    mocks.listeners.forEach(callback => callback('SIGNED_OUT', null));
     pending.resolve(completedProgress());
-    await Promise.resolve();
+    await load;
     expect(page.user.username).toBe('');
     expect(page.isFullyCompleted).toBe(false);
     page.ngOnDestroy();
     expect(mocks.unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('reloads the record when a different account signs in', async () => {
+    const page = progressPage();
+    page.ngOnInit();
+    await page.ionViewWillEnter();
+    const other = { ...completedProgress(), user: { id: 'synthetic-user-b', email: 'other@example.invalid' }, username: 'Second learner', scores: [0, 0, 0, 0, 0, 0] };
+    mocks.progressData.mockResolvedValueOnce(other);
+    mocks.listeners.forEach(callback => callback('SIGNED_IN', { user: other.user }));
+    expect(page.user.username).toBe('');
+    await vi.waitFor(() => expect(page.user.username).toBe('Second learner'));
+    expect(page.isFullyCompleted).toBe(false);
+    page.ngOnDestroy();
+  });
+
+  it('keeps the record when the same account returns to the foreground', async () => {
+    const page = progressPage();
+    page.ngOnInit();
+    await page.ionViewWillEnter();
+    mocks.listeners.forEach(callback => callback('SIGNED_IN', syntheticSession));
+    expect(page.user.username).toBe('Synthetic learner');
+    expect(page.isFullyCompleted).toBe(true);
+    expect(mocks.progressData).toHaveBeenCalledTimes(1);
+    page.ngOnDestroy();
+  });
+
+  it('shows the date the course was first completed and a stable certificate ID', async () => {
+    const page = progressPage();
+    await page.ionViewWillEnter();
+    await vi.waitFor(() => expect(page.issuedDate).toBe('November 1, 2026'));
+    expect(mocks.certificateIssuedOn).toHaveBeenCalledWith('synthetic-user-a');
+    expect(page.certificateId).toBe('');
+    const withUuid = { ...completedProgress(), user: { id: '3fa85f64-5717-4562-b3fc-2c963f66afa6', email: 'synthetic@example.invalid' } };
+    mocks.progressData.mockResolvedValueOnce(withUuid);
+    await page.ionViewWillEnter();
+    expect(page.certificateId).toBe('IA-3FA8-5F64');
   });
 
   it('discards a pending response after leaving the page', async () => {

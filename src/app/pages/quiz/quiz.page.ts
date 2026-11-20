@@ -5,6 +5,7 @@ import { db, progressData, topics } from '../../services/backend';
 import { COURSE } from '../../models/course';
 import { QUIZ_DATA, prepareQuiz } from '../../models/quiz-data';
 import { calendarState,displayDate,Term } from '../../models/academic-calendar';
+import { haptic } from '../../ui/feedback';
 
 interface Draft { attempt:string; assignment:string; topic:number; label:string; page:number; items:{id:number;order:number[]}[]; answers:number[] }
 interface Release {id:string; ids:number[]; label:string; term:string}
@@ -14,6 +15,10 @@ export class QuizPage {
   readonly course=COURSE;readonly displayDate=displayDate;
   terms:Term[]=[];scores:number[]=[];uid=''; busy=false; loading=true;problem=''; result:number|null=null;
   draft:Draft|null=null;private epoch=0;
+  /** Which way the last question change went, so questions slide the matching direction. */
+  direction:'forward'|'back'='forward';
+  readonly confetti=Array.from({length:14},(_,i)=>i);
+  get passed(){return this.result!==null&&this.result>=9;}
   term=calendarState([]);
   get quiz(){return this.draft?QUIZ_DATA[this.draft.topic]:null;}
   get item(){return this.draft?.items[this.draft.page];}
@@ -41,16 +46,16 @@ export class QuizPage {
       if(saved&&saved.assignment===release.id&&saved.items?.length===15&&saved.answers?.length===15&&saved.page>=0&&saved.page<15)this.draft=saved;
       else{
         const items=prepareQuiz(release.ids.map(i=>bank[i])).map(q=>{const id=bank.findIndex(v=>v.question===q.question);return {id,order:q.options.map(o=>bank[id].options.indexOf(o))};});
-        this.draft={topic,attempt:crypto.randomUUID(),assignment:release.id,label:release.label,page:0,items,answers:Array(15).fill(-1)};this.remember();
+        this.direction='forward';this.draft={topic,attempt:crypto.randomUUID(),assignment:release.id,label:release.label,page:0,items,answers:Array(15).fill(-1)};this.remember();
       }void this.content?.scrollToTop(0);
     }catch{if(epoch===this.epoch)this.problem='Could not open the quiz. Check your connection and try again.';}finally{if(epoch===this.epoch)this.busy=false;}
   }
-  choose(option:number){if(this.draft&&!this.busy){this.draft.answers[this.draft.page]=option;this.remember();}}
-  move(to:number){if(!this.draft||this.busy||to<0||to>=15)return;this.draft.page=to;this.remember();void this.content?.scrollToTop(0);}
+  choose(option:number){if(this.draft&&!this.busy){if(this.draft.answers[this.draft.page]!==option)haptic('select');this.draft.answers[this.draft.page]=option;this.remember();}}
+  move(to:number){if(!this.draft||this.busy||to<0||to>=15)return;this.direction=to>this.draft.page?'forward':'back';this.draft.page=to;this.remember();void this.content?.scrollToTop(0);}
   async submit(){
     const d=this.draft;if(!d||this.busy||d.answers.some(a=>a<0))return;this.busy=true;this.problem='';const epoch=this.epoch;
     try{const r=await db.rpc('submit_semester_quiz',{p_attempt:d.attempt,p_assignment:d.assignment,p_answers:d.items.map((item,i)=>({question_id:item.id,choice:d.answers[i]}))});if(r.error)throw r.error;
-      if(epoch!==this.epoch)return;this.result=Number(r.data);this.scores[d.topic]=Math.round(this.result*100/15);localStorage.removeItem(this.key(d.topic));void this.content?.scrollToTop(0);
+      if(epoch!==this.epoch)return;this.result=Number(r.data);this.scores[d.topic]=Math.round(this.result*100/15);haptic(this.result>=9?'success':'tap');localStorage.removeItem(this.key(d.topic));void this.content?.scrollToTop(0);
     }catch{if(epoch===this.epoch)this.problem='Your answers are still on this device. Reconnect and tap Save result again.';}finally{if(epoch===this.epoch)this.busy=false;}
   }
 }

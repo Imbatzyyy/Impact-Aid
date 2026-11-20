@@ -1,22 +1,30 @@
 <ion-content class="study-page"><main class="study-shell">
   @if (active===null) {
+    <div class="ia-stagger">
     <header class="study-head"><div class="signature"><img src="assets/impact-shield.png" alt=""><span>Impact Aid</span></div><p class="kicker">Field guide</p><h1>Disaster lessons</h1><p>Choose a topic. Read a section at a time, and pick up where you left off.</p></header>
     <nav class="study-tabs" aria-label="Learning activities"><span aria-current="page">Lessons</span><a routerLink="/quiz">Practice quizzes</a></nav>
-    <div class="section-line"><h2>The six guides</h2>@if(!loading&&!loadError){<small>{{completed.length}} of 6 complete</small>}</div>
+    <div class="section-line"><h2>The six guides</h2>@if(loading){<span class="ia-skeleton" style="width:90px;height:14px" aria-hidden="true"></span>}@else if(!loadError){<small>{{completed.length}} of 6 complete</small>}</div>
     @if(loadError){<p class="notice" role="alert">Your saved place could not load. You can still read the guides. <button (click)="ionViewWillEnter()">Retry</button></p>}
-    <div class="topic-list">@for (topic of course;track topic.title;let i=$index){<button class="topic-row" (click)="open(i)" [disabled]="loading"><span class="topic-icon" [attr.data-tone]="topic.tone"><ion-icon [name]="topic.icon"></ion-icon></span><span class="topic-copy"><small>Guide 0{{i+1}}</small><strong>{{topic.title}}</strong><span>{{topic.summary}}</span>@if(!loadError){<em>{{completed.includes(i)?'Completed · Review':bookmarks[i]>0?'Resume at section '+(bookmarks[i]+1):'Start reading'}}</em>}</span><ion-icon name="chevron-forward"></ion-icon></button>}</div>
+    <div class="topic-list">@for (topic of course;track topic.title;let i=$index){<button class="topic-row" (click)="open(i)" [disabled]="loading"><span class="topic-icon" [attr.data-tone]="topic.tone"><ion-icon [name]="topic.icon"></ion-icon>@if(completed.includes(i)){<span class="done-badge" aria-hidden="true"><ion-icon name="checkmark"></ion-icon></span>}</span><span class="topic-copy"><small>Guide 0{{i+1}}</small><strong>{{topic.title}}</strong><span>{{topic.summary}}</span>@if(loading){<em class="ia-skeleton" style="width:110px;height:12px" aria-hidden="true"></em>}@else if(!loadError){<em [class.done]="completed.includes(i)">{{completed.includes(i)?'Completed · Review':bookmarks[i]>0?'Resume at section '+(bookmarks[i]+1):'Start reading'}}</em>}</span><ion-icon name="chevron-forward"></ion-icon></button>}</div>
+    </div>
   } @else if (current;as topic) {
+    <div class="reader">
     <button class="back-link" (click)="close()" [disabled]="saving"><ion-icon name="arrow-back-outline"></ion-icon> All lessons</button>
     <header class="reader-head"><span class="topic-icon" [attr.data-tone]="topic.tone"><ion-icon [name]="topic.icon"></ion-icon></span><div><p class="kicker">Field guide / 0{{active+1}}</p><h1>{{topic.title}}</h1></div></header>
-    <div class="reading-nav"><span>Section {{section+1}} of {{chapters.length}}</span><progress [value]="section+1" [max]="chapters.length" aria-label="Reading position"></progress></div>
-    @if(section===0){<details class="video-panel"><summary><ion-icon name="book-outline"></ion-icon> Watch the lesson video</summary><video controls preload="none" playsinline [src]="'assets/lessons/'+topic.video+'.mp4'" [attr.aria-label]="topic.title+' lesson video'"></video></details>}
-    <article class="reading-sheet"><h2>{{chapters[section].title}}</h2><div class="reading-prose" [innerHTML]="chapters[section].html"></div></article>
-    @if(saveError){<p class="notice" role="alert">{{saveError}}</p>}
+    <div class="reading-nav"><span>Section {{section+1}} of {{chapters.length}}</span><div class="meter" role="progressbar" aria-label="Reading position" [attr.aria-valuenow]="section+1" aria-valuemin="1" [attr.aria-valuemax]="chapters.length"><span [style.width.%]="(section+1)/chapters.length*100"></span></div></div>
+    @for (chapter of [chapters[section]]; track section) {
+      <div [class.ia-forward]="direction==='forward'" [class.ia-back]="direction==='back'">
+        @if(section===0){<details class="video-panel"><summary><ion-icon name="play-circle-outline"></ion-icon> Watch the lesson video</summary><video controls preload="none" playsinline [src]="'assets/lessons/'+topic.video+'.mp4'" [attr.aria-label]="topic.title+' lesson video'"></video></details>}
+        <article class="reading-sheet"><h2>{{chapter.title}}</h2><div class="reading-prose" [innerHTML]="chapter.html"></div></article>
+      </div>
+    }
+    @if(saveError){<p class="notice" role="status">{{saveError}}</p>}
     @if(loadError){<p class="notice">Reading only. Reconnect and reload the guides to save your place.</p>}
-    <div class="study-actions"><button class="secondary" [disabled]="saving||section===0" (click)="move(section-1)">Previous</button>
-    @if(section<chapters.length-1){<button class="primary" [disabled]="saving" (click)="move(section+1)">{{saving?'Saving…':'Next section'}} <ion-icon name="arrow-forward-outline"></ion-icon></button>}
-    @else if(completed.includes(active)){<a class="primary" routerLink="/quiz">Go to quizzes</a>}
-    @else {<button class="primary" [disabled]="saving||!userId" (click)="finish()">{{saving?'Saving…':'Finish lesson'}}</button>}</div>
-    @if(completed.includes(active)&&section===chapters.length-1){<p class="saved-line" role="status"><ion-icon name="checkmark-circle"></ion-icon> Lesson completion saved to My Progress.</p>}
+    <div class="study-actions"><button class="secondary" [disabled]="saving||section===0" (click)="move(section-1)"><ion-icon name="arrow-back-outline"></ion-icon> Previous</button>
+    @if(section<chapters.length-1){<button class="primary" (click)="move(section+1)">Next section <ion-icon name="arrow-forward-outline"></ion-icon></button>}
+    @else if(completed.includes(active)){<a class="primary" routerLink="/quiz">Go to quizzes <ion-icon name="arrow-forward-outline"></ion-icon></a>}
+    @else {<button class="primary" [disabled]="saving||!userId" (click)="finish()">{{saving?'Saving…':'Finish lesson'}} <ion-icon name="checkmark-circle"></ion-icon></button>}</div>
+    @if(completed.includes(active)&&section===chapters.length-1){<p class="saved-line" role="status"><span class="check"><ion-icon name="checkmark"></ion-icon></span> Lesson complete. Saved to My Progress.</p>}
+    </div>
   }
 </main></ion-content>

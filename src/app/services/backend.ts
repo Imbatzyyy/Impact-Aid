@@ -21,3 +21,20 @@ export async function progressData(withAttempts=false) {
   for(const response of [profile,lessons,quizzes,history]) if(response.error) throw response.error;
   return {user,attempts:history.data??[],username:String(profile.data!.username),lessons:(lessons.data||[]).map(r=>Number(r.lesson_id)),scores:topics.map(topic=>quizzes.data?.find(r=>r.topic===topic)?.percentage ?? -1)};
 }
+/**
+ * The day the course was first fully passed: the latest of each topic's first passing
+ * attempt. Scores from before attempts were recorded fall back to their saved date.
+ * Returns null when a topic has no passing record.
+ */
+export async function certificateIssuedOn(userId: string): Promise<string | null> {
+  const [attempts, results] = await Promise.all([
+    db.from('quiz_attempts').select('topic,correct,total,taken_at').eq('user_id', userId).order('taken_at', { ascending: true }).limit(2000),
+    db.from('quiz_results').select('topic,percentage,last_taken').eq('user_id', userId),
+  ]);
+  if (attempts.error) throw attempts.error;
+  if (results.error) throw results.error;
+  const firstPass = new Map<string, string>();
+  for (const a of attempts.data ?? []) if (!firstPass.has(a.topic) && a.total > 0 && a.correct / a.total >= 0.6) firstPass.set(a.topic, a.taken_at);
+  const dates = topics.map(topic => firstPass.get(topic) ?? results.data?.find(r => r.topic === topic && r.percentage >= 60)?.last_taken);
+  return dates.every(Boolean) ? (dates as string[]).sort().at(-1)! : null;
+}

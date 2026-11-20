@@ -29,7 +29,7 @@ Choose **Sign in with Google** or **Sign up with Google**. Supabase creates a ne
 
 ## Your profile and a calmer start
 
-The Impact Aid shield is the Android app icon. A five-second pulsing splash leads into Home (or sign-in for a signed-out user), with immediate access to emergency help. Tap your Home avatar for My Profile. Photos have a circular preview with drag, pinch, zoom and rotation. Address fields offer suggestions as you type, and your chosen photo appears on Home after saving. Profile details and photos are private to your account. [Profile, address and recovery details](docs/PROFILE-AND-RECOVERY.md).
+The Impact Aid shield is the Android app icon. A short pulsing splash (about two seconds) leads into Home (or sign-in for a signed-out user), with immediate access to emergency help. Tap your Home avatar for My Profile. Photos have a circular preview with drag, pinch, zoom and rotation. Address fields offer suggestions as you type, and your chosen photo appears on Home after saving. Profile details and photos are private to your account. [Profile, address and recovery details](docs/PROFILE-AND-RECOVERY.md).
 
 | My Profile | A calmer welcome |
 | --- | --- |

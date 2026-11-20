@@ -1,143 +1,41 @@
-:host {
-  display: block;
-  font-family: var(--ion-font-family);
-}
+.back-link ion-icon { font-size: 18px; }
+.settings-list .topic-row:disabled { opacity: .6; }
+.settings-list .topic-icon { width: 42px; height: 42px; font-size: 22px; }
+.settings-list .topic-copy strong { font-size: 16px; }
+.sign-out .topic-icon { background: var(--ia-red-soft, #fbe9e7); color: var(--ia-red); }
+.sign-out strong { color: var(--ia-red-strong, #8f2a23); }
+.sign-out:active:not(:disabled) { background: #fdf1ef; }
 
-ion-content {
-  --background: #F8FAFC;
-  contain: none;
-}
+.app-footer { display: grid; justify-items: center; gap: 4px; margin: 34px 0 8px; text-align: center; color: #51676c; font-size: 13px; }
+.app-footer img { width: 40px; height: 45px; object-fit: contain; margin-bottom: 6px; opacity: .9; }
+.app-footer strong { color: var(--ia-ink); }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6,
-p, span, button, input, label, a, li {
-  font-family: var(--ion-font-family);
-}
+/* Sheets */
+.info-sheet { font-size: 14px; line-height: 1.6; }
+.faq-list { border: 1px solid var(--ia-line); border-radius: 14px; overflow: hidden; background: #fff; }
+.faq + .faq { border-top: 1px solid var(--ia-line); }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 12px 16px; list-style: none; cursor: pointer; font-size: 15px; font-weight: 650; color: var(--ia-ink); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary ion-icon { flex: none; font-size: 18px; color: #607971; transition: rotate var(--ia-dur-2) var(--ia-ease); }
+.faq[open] summary ion-icon { rotate: 180deg; }
+.faq[open] summary { color: var(--ia-teal); }
+.faq p { margin: 0; padding: 0 16px 16px; color: #3c5661; animation: ia-rise var(--ia-dur-2) var(--ia-ease) both; }
 
-/* Toasts */
-.custom-toast {
-  font-family: var(--ion-font-family);
-  --border-radius: 12px;
-}
+.about-brand { display: flex; align-items: center; gap: 14px; margin: 4px 0 16px; }
+.about-brand img { width: 56px; height: 63px; object-fit: contain; }
+.about-brand p { margin: 0; }
+.about-brand strong, .about-brand span { display: block; }
+.about-brand strong { font-size: 18px; color: var(--ia-ink); }
+.about-brand span { font-size: 13px; color: var(--ia-ink-soft); }
 
-/* Spacing utilities */
-.space-y-3 > * + * { margin-top: 0.75rem; }
-.space-y-4 > * + * { margin-top: 1rem; }
-.space-y-6 > * + * { margin-top: 1.5rem; }
-
-/* Backdrop blur */
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-/* Gradients */
-
-
-
-/* Color gradients */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Animations */
-@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slide-in-from-bottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.animate-in { animation-duration: 300ms; animation-fill-mode: both; }
-.fade-in { animation-name: fade-in; }
-.slide-in-from-bottom { animation-name: slide-in-from-bottom; }
-
-/* Hover utilities */
-.group:hover .group-hover\:scale-110 { transform: scale(1.1); }
-.group:hover .group-hover\:text-gray-600 { color: #4b5563; }
-.group:hover .group-hover\:text-rose-600 { color: #e11d48; }
-
-/* Responsive tweaks */
-@media (max-width: 375px) {
-  h1 { font-size: 1.5rem; }
-}
-
-/* Layout helpers */
-.max-w-2xl { max-width: 42rem; }
-.sticky { position: sticky; }
-.top-0 { top: 0; }
-ul { list-style: none; padding: 0; margin: 0; }
-
-img[alt="Impact Aid Logo"] {
-  border-radius: 10.5rem;
-  background: white;
-}
-
-/* === APP LOGO === */
-.app-logo {
-  width: 120px;
-  height: auto;
-  border-radius: 1.5rem;
-  background: #ffffff;
-  padding: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.app-logo:hover {
-  transform: scale(1.03);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-/* Smaller screens */
-@media (max-width: 480px) {
-  .app-logo {
-    width: 90px;
-    padding: 0.5rem;
-  }
-}
-
-/* About Modal Logo Refinement */
-.about-logo-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.about-logo-container img {
-  width: 130px;         /* 🔹 Resize smaller */
-  height: auto;
-  border-radius: 1.5rem;
-  background: white;
-  padding: 0.5rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-@media (max-width: 400px) {
-  .about-logo-container img {
-    width: 110px;       /* 🔹 Slightly smaller on small screens */
-  }
-}
-
-/* Fix overlap with tab bar on Logout modal */
-.logout-modal {
-  padding-bottom: 5.5rem !important; /* adds safe spacing above the tab bar */
-}
-
-.logout-modal button {
-  min-height: 52px;
-}
-
-/* Adjust the button layout for better balance */
-.logout-modal .flex {
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-}
+.info-card { padding: 16px 18px; border: 1px solid var(--ia-line); border-radius: 14px; background: #fff; }
+.info-card + .info-card { margin-top: 12px; }
+.info-card.mission { background: linear-gradient(135deg, #e7f1ec, #f4f8f6); border-color: #cfe0d7; }
+.info-card h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; color: var(--ia-ink); }
+.info-card h4 { margin: 14px 0 6px; font-size: 14px; font-weight: 650; color: var(--ia-teal); }
+.info-card p { margin: 0; color: #3c5661; }
+.info-card ul { margin: 0; padding-left: 1.1em; color: #3c5661; }
+.info-card li + li { margin-top: 6px; }
+.info-links { display: grid; gap: 8px; margin-top: 14px; }
+.info-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 10px; color: var(--ia-teal); font-weight: 650; text-decoration: none; }
+.info-links .info-link { margin-top: 0; }

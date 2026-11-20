@@ -1,11 +1,14 @@
 import { Component, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
-import { IonContent } from '@ionic/angular';
+import { IonContent, IonIcon } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
 import { GoogleAuthService } from '../../services/google-auth.service';
 import { session } from '../../services/backend';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { Capacitor } from '@capacitor/core';
-@Component({selector:'app-splashscreen',standalone:true,imports:[IonContent,RouterLink],changeDetection:ChangeDetectionStrategy.Eager,
+/** Total time on the splash, including its fade out. */
+export const SPLASH_MS=2200;
+const LEAVE_MS=350;
+@Component({selector:'app-splashscreen',standalone:true,imports:[IonContent,IonIcon,RouterLink],changeDetection:ChangeDetectionStrategy.Eager,
  templateUrl:'./splashscreen.page.html',styleUrls:['./splashscreen.page.scss']})
 export class SplashscreenPage implements OnDestroy {
  leaving=false;private active=true;private timer?:ReturnType<typeof setTimeout>;
@@ -13,12 +16,13 @@ export class SplashscreenPage implements OnDestroy {
  async ionViewDidEnter(){
   this.active=true;this.leaving=false;
   if(Capacitor.isNativePlatform())await SplashScreen.hide({fadeOutDuration:0}).catch(()=>{});
-  // Start the five seconds when the animated screen is actually visible.
-  this.timer=setTimeout(()=>{void this.finish();},4650);
+  // A short branded moment (about two seconds) that never delays someone who needs help:
+  // the emergency link is live from the first frame.
+  this.timer=setTimeout(()=>{void this.finish();},SPLASH_MS-LEAVE_MS);
  }
  private async finish(){
   if(!this.active)return;this.leaving=true;
-  this.timer=setTimeout(()=>{void this.route();},350);
+  this.timer=setTimeout(()=>{void this.route();},LEAVE_MS);
  }
  private async route(){
   await this.google.ready();if(!this.active)return;
